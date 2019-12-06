@@ -2,7 +2,7 @@
 title: "data description"
 author: "Guangling Xu"
 date: "2019/12/5"
-output: html_document
+output: github_document
 ---
 ```{r,include=FALSE, message=FALSE,warning=FALSE}
 library(tidyverse)
