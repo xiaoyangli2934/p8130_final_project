@@ -11,7 +11,7 @@ library(arsenal)
 ```
 
 
-
+## data cleaning
 ```{r}
 lawsuit = read.csv("./data/Lawsuit.csv") %>% 
   janitor::clean_names() %>% 
@@ -29,6 +29,8 @@ lawsuit = read.csv("./data/Lawsuit.csv") %>%
                 labels = c("Assistant","Associate","Full professor"))
   )
 ```
+
+## descriptive
 
 ```{r}
 
@@ -95,20 +97,20 @@ prate_plot = ggplot(lawsuit, aes(x = prate))+
    geom_vline(aes(xintercept = mean_prate, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-rank_plot = ggplot(lawsuit, aes(x = rank))+
-  geom_bar(aes(fill = gender))+
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
+rank_plot = ggplot(lawsuit, aes(x = rank)) +
+  geom_bar(aes(fill = gender)) +
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90)) + theme(legend.position = "top")
 
-sal94_plot = ggplot(lawsuit1, aes(x = sal94))+
-  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
+sal94_plot = ggplot(lawsuit1, aes(x = sal94)) +
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4) +
   geom_vline(aes(xintercept = mean_sal94, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-sal95_plot = ggplot(lawsuit1, aes(x = sal95))+
-  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
+sal95_plot = ggplot(lawsuit1, aes(x = sal95)) +
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4) +
   geom_vline(aes(xintercept = mean_sal95, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-(dept_plot | clin_plot | cert_plot | rank_plot )/ (prate_plot  + sal94_plot + sal95_plot)
+(dept_plot | clin_plot | cert_plot | rank_plot ) / (prate_plot  + sal94_plot + sal95_plot)
 ```
 
