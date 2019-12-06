@@ -1,0 +1,186 @@
+---
+title: "data description"
+author: "Guangling Xu"
+date: "2019/12/5"
+output: html_document
+---
+```{r,include=FALSE, message=FALSE,warning=FALSE}
+library(tidyverse)
+library(patchwork)
+
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE,
+    fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme(panel.grid =element_blank()) 
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+
+```{r import data,echo=FALSE,message=FALSE,warning=FALSE}
+lawsuit = read.csv("C:/Users/xu499/Documents/Tencent_Files/data/Lawsuit.csv") %>% janitor::clean_names() %>% 
+  mutate(
+  dept = factor(dept, levels = c("1","2","3","4","5","6"),
+         labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")
+         ),
+  gender = factor(gender, levels = c("1","0"),
+                  labels = c("Male","Female")),
+  clin  = factor(clin, levels = c("1","0"),
+                 labels = c("Primarily clinical emphasis","Primarily research emphasis")),
+  cert = factor(cert,levels = c("1","0"),
+                labels = c("Board certified","not certified")),
+  rank = factor(rank, levels = c("1","2","3"),
+                labels = c("Assistant","Associate","Full professor"))
+  )
+```
+
+### Table 1 
+
+Summarizing all variables by Gender(the main covariate of interest)
+
+```{r,echo=FALSE}
+
+table1::label(lawsuit$dept) <- "Department"
+table1::label(lawsuit$clin) <- "Clinical Emphasis"
+table1::label(lawsuit$cert) <- "Certified"
+table1::label(lawsuit$prate) <- "Publication Rate"
+table1::label(lawsuit$exper) <- "Experience"
+table1::label(lawsuit$rank) <- "Rank"
+table1::label(lawsuit$sal94) <- "Salary in 1994"
+table1::label(lawsuit$sal95) <- "Salary after Increment"
+
+table1::table1(~dept + clin + cert + prate+ exper+ rank+ sal94+ sal95| gender, data = lawsuit)
+```
+
+
+```{r,echo=FALSE}
+library(arsenal)
+library(knitr)
+library(kableExtra)
+
+
+lawsuit_filter = lawsuit %>%
+  select(-id)
+table_one <- tableby(gender ~ ., data = lawsuit_filter)
+table_one = summary(table_one, title = "Lawsuit Data")
+
+kable(table_one) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+```{r, results="asis"}
+library(arsenal)
+my_controls <- tableby.control(
+  test = T,
+  total = T,
+  numeric.test = "kwt", cat.test = "chisq",
+  numeric.stats = c("meansd", "medianq1q3", "range", "Nmiss2"),
+  cat.stats = c("countpct", "Nmiss2"),
+  stats.labels = list(
+    meansd = "Mean (SD)",
+    medianq1q3 = "Median (Q1, Q3)",
+    range = "Min - Max",
+    Nmiss2 = "Missing"
+  )
+)
+ 
+my_labels <- list(
+  dept = "Department",
+  clin = "Clinical Emphasis",
+  cert = "Certification",
+  prate = "Publication Rate",
+  exper = "Experience",
+  rank = "Rank",
+  sal94 = "Salary in 1994",
+  sal95 = "Salary after Increment"
+)
+
+ 
+table_two <- tableby(gender ~ .,
+  data = lawsuit,
+  control = my_controls
+)
+ 
+summary(table_two,
+  labelTranslations = my_labels,
+  title = "Summary Statistic of lawsuit Data",
+  pfootnote = TRUE,text = FALSE
+)
+```
+
+
+
+
+
+Results
+------------------------------
+Among the 261 participants in this study, 40.6% (n = 106) were female. As shown in *Table 1*, participants who were female were more likely to be in the department of Medicine , premarily clinical emphasis, board certified and assistant. The mean publication rate was 4.6(sd = 1.9) for male and 5.4(sd = 1.9) for female. The mean number of years since obtaining MD was 12.1(sd = 6.7)for male and 7.5(sd = 4.2) for female. The mean salary in 1994 was 177338.8(sd = 85930.5) for male and 118871.3(sd = 56168.0) for female. Salary after increment was 194914.1(sd = 94902.7) for male and 130876.9(sd = 88778.4) for female. 
+
+
+
+### Distribution
+
+```{r,echo = FALSE}
+lawsuit1 = lawsuit %>% 
+  group_by(gender) %>% 
+  mutate(
+    mean_prate = mean(prate),
+    mean_exper = mean(exper),
+    mean_sal94 = mean(sal94),
+    mean_sal95 = mean(sal95)
+  )
+
+dept_plot = ggplot(lawsuit, aes(x = dept)) +
+  geom_bar(aes(fill = gender))+
+   theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
+           
+clin_plot = ggplot(lawsuit, aes(x = clin))+
+  geom_bar(aes(fill = gender))+
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
+
+cert_plot = ggplot(lawsuit, aes(x = cert))+
+  geom_bar(aes(fill = gender))+
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
+
+prate_plot = ggplot(lawsuit, aes(x = prate))+
+  geom_density(aes(fill= gender,y = ..count..),alpha = 0.4)+
+   geom_vline(aes(xintercept = mean_prate, color = gender),
+             data = lawsuit1, linetype = "dashed")
+
+rank_plot = ggplot(lawsuit, aes(x = rank))+
+  geom_bar(aes(fill = gender))+
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
+
+sal94_plot = ggplot(lawsuit1, aes(x = sal94))+
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
+  geom_vline(aes(xintercept = mean_sal94, color = gender),
+             data = lawsuit1, linetype = "dashed")
+
+sal95_plot = ggplot(lawsuit1, aes(x = sal95))+
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
+  geom_vline(aes(xintercept = mean_sal95, color = gender),
+             data = lawsuit1, linetype = "dashed")
+
+(dept_plot | clin_plot | cert_plot | rank_plot )/ (prate_plot  + sal94_plot + sal95_plot)
+```
+
+Transformation
+-------------------------
+
+Use box cox to do transformation for sal94 and sal95
+
+```{r}
+
+
+
+```
+
