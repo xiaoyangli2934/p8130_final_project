@@ -27,7 +27,7 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 
 ```{r import data,echo=FALSE,message=FALSE,warning=FALSE}
-lawsuit = read.csv("C:/Users/xu499/Documents/Tencent_Files/data/Lawsuit.csv") %>% janitor::clean_names() %>% 
+lawsuit = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>% 
   mutate(
   dept = factor(dept, levels = c("1","2","3","4","5","6"),
          labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")
