@@ -1,0 +1,95 @@
+---
+title: "regression"
+author: "Shenglin Liu"
+date: "12/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library}
+library(tidyverse)
+library(arsenal)
+```
+
+```{r message = FALSE, description}
+data = read_csv('./data/Lawsuit.csv') %>%
+  janitor::clean_names() %>%
+  mutate(
+    gender = factor(gender, levels = c(0,1), labels = c("female","male"))
+  )
+
+data$ln_sal94 = log(data$sal94)
+
+# clean the output
+my_controls = tableby.control(
+  total = F,
+  test = F,  # No test p-values yet
+  numeric.stats = c("meansd", "medianq1q3"),
+  stats.labels = list(
+    meansd = "Mean \u00b1 SD",
+    medianq1q3 = "Median (IQR)"))
+
+tab1 = tableby(gender ~ clin + cert + prate + exper + rank, data = data, control = my_controls)
+summary(tab1, title = "Descriptive Statistics", text = T)
+
+pred = data[,c(4:8)]
+round(cor(pred),3)
+```
+
+```{r contingency}
+dept = matrix(c(20, 20, 11, 20, 30, 5, 30, 20, 10, 10, 50, 35), nrow = 2,ncol = 6,byrow = T)
+chisq.test(dept)
+```
+
+```{r regression}
+reg1 = lm(ln_sal94 ~ gender, data = data)
+summary(reg1)
+
+reg2 = lm(ln_sal94 ~ gender + clin + cert + rank + gender*rank, data = data)
+summary(reg2)
+
+reg3 = lm(ln_sal94 ~ gender + clin + prate + cert + rank + gender*rank, data = data)
+summary(reg3)
+
+reg4 = lm(ln_sal94 ~ gender + clin + prate + cert + exper + rank + gender*rank, data = data)
+summary(reg4)
+
+reg5 = lm(ln_sal94 ~ gender + factor(dept) + prate + cert + exper + rank + gender*rank, data = data)
+summary(reg5)
+
+reg10 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper + rank, data = data)
+summary(reg10)
+
+reg6 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper + rank + gender*rank, data = data)
+summary(reg6)
+
+reg7 = lm(ln_sal94 ~ gender + clin, data = data)
+summary(reg7)
+
+reg8 = lm(ln_sal94 ~ gender + prate, data = data)
+summary(reg8)
+
+reg9 = lm(ln_sal94 ~ gender + clin + prate, data = data)
+summary(reg9)
+```
+
+```{r stratificiation}
+rank1_data = filter(data, rank == 1)
+rank2_data = filter(data, rank == 2)
+rank3_data = filter(data, rank == 3)
+
+reg_stra1 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper, data = rank1_data)
+summary(reg_stra1)
+reg_stra2 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper, data = rank2_data)
+summary(reg_stra2)
+reg_stra3 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper, data = rank3_data)
+summary(reg_stra3)
+```
+
+
+
+
+
