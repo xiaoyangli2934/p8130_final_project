@@ -117,7 +117,7 @@ The mean salary in 1994 was 177338.8(sd = 85930.5) for male and
 
 ### Distribution
 
-<img src="data_description_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
+<img src="data_description_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" /><img src="data_description_files/figure-gfm/unnamed-chunk-4-2.png" width="90%" />
 
 ## Transformation
 
