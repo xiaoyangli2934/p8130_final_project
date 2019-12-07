@@ -1,0 +1,52 @@
+---
+title: "Test"
+author: "Jingyu Fu"
+date: "2019/12/6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library}
+library(tidyverse)
+library(arsenal)
+```
+
+```{r message = FALSE, description}
+data = read_csv('./data/Lawsuit.csv') %>%
+  janitor::clean_names() %>%
+  mutate(
+    gender = factor(gender, levels = c(0,1), labels = c("female","male"))
+  )
+
+data$ln_sal94 = log(data$sal94)
+
+# clean the output
+my_controls = tableby.control(
+  total = F,
+  test = F,  # No test p-values yet
+  numeric.stats = c("meansd", "medianq1q3"),
+  stats.labels = list(
+    meansd = "Mean \u00b1 SD",
+    medianq1q3 = "Median (IQR)"))
+
+tab1 = tableby(gender ~ clin + cert + prate + exper + rank, data = data, control = my_controls)
+summary(tab1, title = "Descriptive Statistics", text = T)
+
+pred = data[,c(4:8)]
+round(cor(pred),3)
+```
+
+```{r}
+final_model = lm(ln_sal94 ~ clin + cert + dept + exper + rank*rank, data = data)
+
+plot(final_model)
+```
+```{r}
+data  = mutate(
+  exper = log(exper)
+)
+```
+
