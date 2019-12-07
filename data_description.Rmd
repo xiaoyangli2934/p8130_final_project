@@ -1,20 +1,33 @@
 ---
-title: "data descriptive"
-author: "Xiaoyang Li"
-date: "2019/12/6"
-output: html_document
+title: "data description"
+author: "Guangling Xu"
+date: "2019/12/5"
+output: github_document
 ---
-```{r}
+```{r,include=FALSE, message=FALSE,warning=FALSE}
 library(tidyverse)
 library(patchwork)
-library(arsenal)
+
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE,
+    fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme(panel.grid =element_blank()) 
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 
-## data cleaning
-```{r}
-lawsuit = read.csv("./data/Lawsuit.csv") %>% 
-  janitor::clean_names() %>% 
+```{r import data,echo=FALSE,message=FALSE,warning=FALSE}
+lawsuit = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>% 
   mutate(
   dept = factor(dept, levels = c("1","2","3","4","5","6"),
          labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")
@@ -30,10 +43,27 @@ lawsuit = read.csv("./data/Lawsuit.csv") %>%
   )
 ```
 
-## descriptive
+### Table 1 
 
-```{r}
+Summarizing all variables by Gender(the main covariate of interest)
 
+```{r,echo=FALSE}
+
+table1::label(lawsuit$dept) <- "Department"
+table1::label(lawsuit$clin) <- "Clinical Emphasis"
+table1::label(lawsuit$cert) <- "Certified"
+table1::label(lawsuit$prate) <- "Publication Rate"
+table1::label(lawsuit$exper) <- "Experience"
+table1::label(lawsuit$rank) <- "Rank"
+table1::label(lawsuit$sal94) <- "Salary in 1994"
+table1::label(lawsuit$sal95) <- "Salary after Increment"
+
+table1::table1(~dept + clin + cert + prate+ exper+ rank+ sal94+ sal95| gender, data = lawsuit)
+```
+
+
+```{r, results="asis"}
+library(arsenal)
 my_controls <- tableby.control(
   test = T,
   total = T,
@@ -70,7 +100,21 @@ summary(table_two,
   title = "Summary Statistic of lawsuit Data",
   pfootnote = TRUE,text = FALSE
 )
+```
 
+
+
+
+
+Results
+------------------------------
+Among the 261 participants in this study, 40.6% (n = 106) were female. As shown in *Table 1*, participants who were female were more likely to be in the department of Medicine , premarily clinical emphasis, board certified and assistant. The mean publication rate was 4.6(sd = 1.9) for male and 5.4(sd = 1.9) for female. The mean number of years since obtaining MD was 12.1(sd = 6.7)for male and 7.5(sd = 4.2) for female. The mean salary in 1994 was 177338.8(sd = 85930.5) for male and 118871.3(sd = 56168.0) for female. Salary after increment was 194914.1(sd = 94902.7) for male and 130876.9(sd = 88778.4) for female. 
+
+
+
+### Distribution
+
+```{r,echo = FALSE}
 lawsuit1 = lawsuit %>% 
   group_by(gender) %>% 
   mutate(
@@ -97,20 +141,26 @@ prate_plot = ggplot(lawsuit, aes(x = prate))+
    geom_vline(aes(xintercept = mean_prate, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-rank_plot = ggplot(lawsuit, aes(x = rank)) +
-  geom_bar(aes(fill = gender)) +
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90)) + theme(legend.position = "top")
+rank_plot = ggplot(lawsuit, aes(x = rank))+
+  geom_bar(aes(fill = gender))+
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 90))+ theme(legend.position = "top")
 
-sal94_plot = ggplot(lawsuit1, aes(x = sal94)) +
-  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4) +
+sal94_plot = ggplot(lawsuit1, aes(x = sal94))+
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
   geom_vline(aes(xintercept = mean_sal94, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-sal95_plot = ggplot(lawsuit1, aes(x = sal95)) +
-  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4) +
+sal95_plot = ggplot(lawsuit1, aes(x = sal95))+
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
   geom_vline(aes(xintercept = mean_sal95, color = gender),
              data = lawsuit1, linetype = "dashed")
 
-(dept_plot | clin_plot | cert_plot | rank_plot ) / (prate_plot  + sal94_plot + sal95_plot)
+(dept_plot | clin_plot | cert_plot | rank_plot )/ (prate_plot  + sal94_plot + sal95_plot)
 ```
+
+Transformation
+-------------------------
+
+Use box cox to do transformation for sal94 and sal95
+
 
