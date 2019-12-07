@@ -1,0 +1,63 @@
+---
+title: "main effect forward"
+author: "Xiaoyang Li"
+date: "2019/12/6"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(arsenal)
+library(HH)
+```
+
+```{r}
+lawsuit = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>% 
+  mutate(
+  dept = factor(dept, levels = c("1","2","3","4","5","6"),
+         labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")
+         ),
+  gender = factor(gender, levels = c("1","0"),
+                  labels = c("Male","Female")),
+  clin  = factor(clin, levels = c("1","0"),
+                 labels = c("Primarily clinical emphasis","Primarily research emphasis")),
+  cert = factor(cert,levels = c("1","0"),
+                labels = c("Board certified","not certified")),
+  rank = factor(rank, levels = c("1","2","3"),
+                labels = c("Assistant","Associate","Full professor"))
+  ) %>% 
+  mutate(
+    ln_sal94 = log(sal94),
+    kn_sal95 = log(sal95)
+  )
+
+```
+
+build regression
+```{r}
+lm1 = lm(ln_sal94 ~ gender, data = lawsuit)
+summary(lm1)
+
+lm2 = lm(ln_sal94 ~ gender + dept, data = lawsuit)
+lm3 = lm(ln_sal94 ~ gender + clin, data = lawsuit)
+lm4 = lm(ln_sal94 ~ gender + cert, data = lawsuit)
+lm5 = lm(ln_sal94 ~ gender + exper, data = lawsuit)
+lm6 = lm(ln_sal94 ~ gender + rank, data = lawsuit)
+
+rbind(
+  broom::glance(lm1),
+  broom::glance(lm2),
+  broom::glance(lm3),
+  broom::glance(lm4),
+  broom::glance(lm5),
+  broom::glance(lm6)
+)
+
+
+lm_final = lm(ln_sal94 ~ dept + clin + cert + exper + rank * gender, data = lawsuit)
+summary(lm_final)
+
+par(mfrow = c(2,2))
+plot(lm_final)
+```
+
