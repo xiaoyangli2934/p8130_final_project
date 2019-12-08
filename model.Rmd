@@ -124,3 +124,26 @@ plot(reg14)
 ols_plot_resid_stud_fit(reg14)
 ols_plot_resid_lev(reg14)
 ```
+
+```{r stratification}
+data_stra1 = filter(data, exper < 10)
+data_stra2 = filter(data, exper >= 10 & exper < 20)
+data_stra3 = filter(data, exper >= 20)
+reg_stra1 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
+summary(reg_stra1)
+reg_stra2 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
+summary(reg_stra2)
+reg_stra3 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
+summary(reg_stra3)
+
+data_stra4 = filter(data, rank == 1)
+data_stra5 = filter(data, rank == 2)
+data_stra6 = filter(data, rank == 3)
+reg_stra4 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra4)
+summary(reg_stra4)
+reg_stra5 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra5)
+summary(reg_stra5)
+reg_stra6 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra6)
+summary(reg_stra6)
+```
+
