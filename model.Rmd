@@ -24,12 +24,15 @@ library(webshot)
 data = read_csv('./data/Lawsuit.csv') %>%
   janitor::clean_names() %>%
   mutate(
-    gender = factor(gender, levels = c(0,1), labels = c("female","male"))
+    gender = factor(gender, levels = c(0,1), labels = c("female","male")),
+    clin = factor(clin, levels = c(0,1)),
+    cert = factor(cert, levels = c(0,1)),
+    rank = factor(rank, levels = c(1,2,3))
   )
 
 data$ln_sal94 = log(data$sal94)
 data$ln_sal95 = log(data$sal95)
-data$salavg = (data$sal94+data$sal95)/2
+data$salavg = (data$sal94 + data$sal95)/2
 data$ln_salavg = log(data$salavg)
 ```
 
@@ -100,7 +103,7 @@ summary(reg15)
 
 ```{r functional}
 # piecewise regression
-data$experstar = ifelse(data$exper<16, 0, data$exper-16)
+data$experstar = ifelse(data$exper < 16, 0, data$exper - 16)
 reg_spline = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + experstar + rank, data = data)
 summary(reg_spline)
 
