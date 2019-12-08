@@ -48,5 +48,7 @@ plot(final_model)
 data  = mutate(
   exper = log(exper)
 )
+
+histogram()
 ```
 
