@@ -107,6 +107,8 @@ summary(reg_ln)
 ```
 
 ```{r selection}
+anova(reg3, reg14)
+
 # AIC
 AIC(reg14)
 AIC(reg15)

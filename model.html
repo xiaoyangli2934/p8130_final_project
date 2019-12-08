@@ -876,6 +876,16 @@ summary(reg_ln)</code></pre>
 ## Residual standard error: 0.1368 on 249 degrees of freedom
 ## Multiple R-squared:  0.9306, Adjusted R-squared:  0.9275 
 ## F-statistic: 303.5 on 11 and 249 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>anova(reg3, reg14)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: ln_sal94 ~ gender + factor(dept) + clin + cert + exper + rank
+## Model 2: ln_sal94 ~ gender * exper + factor(dept) + clin + cert + rank
+##   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1    250 4.4949                                  
+## 2    249 4.2965  1   0.19838 11.497 0.0008106 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre class="r"><code># AIC
 AIC(reg14)</code></pre>
 <pre><code>## [1] -305.1685</code></pre>
