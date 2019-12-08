@@ -1,0 +1,151 @@
+---
+title: "model"
+author: "Shenglin Liu"
+date: "12/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message = FALSE, library}
+library(tidyverse)
+library(arsenal)
+library(HH)
+library(olsrr)
+```
+
+```{r message = FALSE, data}
+data = read_csv('./data/Lawsuit.csv') %>%
+  janitor::clean_names() %>%
+  mutate(
+    gender = factor(gender, levels = c(0,1), labels = c("female","male"))
+  )
+
+data$ln_sal94 = log(data$sal94)
+data$ln_sal95 = log(data$sal95)
+data$salavg = (data$sal94+data$sal95)/2
+data$ln_salavg = log(data$salavg)
+```
+
+```{r multicollinearity}
+# all covariates
+reg1 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper + rank, data = data)
+summary(reg1)
+vif(reg1)
+
+pred = data[,c(2, 4:8)]
+round(cor(pred), 3)
+
+# all covariates except clin
+reg2 = lm(ln_sal94 ~ gender + factor(dept) + prate + cert + exper + rank, data = data)
+vif(reg2)
+# all covariates except prate
+reg3 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper + rank, data = data)
+vif(reg3)
+# dropping prate leads to lower mean vif
+```
+
+```{r confounding}
+# gender only
+reg4 = lm(ln_sal94 ~ gender, data = data)
+summary(reg4)
+# gender + dept
+reg5 = lm(ln_sal94 ~ gender + factor(dept), data = data)
+summary(reg5)
+# gender + clin
+reg6 = lm(ln_sal94 ~ gender + clin, data = data)
+summary(reg6)
+# gender + cert
+reg7 = lm(ln_sal94 ~ gender + cert, data = data)
+summary(reg7)
+# gender + exper
+reg9 = lm(ln_sal94 ~ gender + exper, data = data)
+summary(reg9)
+# gender + rank
+reg10 = lm(ln_sal94 ~ gender + rank, data = data)
+summary(reg10)
+# all confounders
+summary(reg3)
+```
+
+
+```{r interaction}
+# 3 + gender * dept
+reg11 = lm(ln_sal94 ~ gender*factor(dept) + clin + cert + exper + rank, data = data)
+summary(reg11)
+# 3 + gender * clin
+reg12 = lm(ln_sal94 ~ gender*clin + factor(dept) + cert + exper + rank, data = data)
+summary(reg12)
+# 3 + gender * cert
+reg13 = lm(ln_sal94 ~ gender*cert + factor(dept) + cert + exper + rank, data = data)
+summary(reg13)
+# 3 + gender * exper
+reg14 = lm(ln_sal94 ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
+summary(reg14)
+# 3 + gender * rank
+reg15 = lm(ln_sal94 ~ gender*rank + factor(dept) + clin + cert + exper, data = data)
+summary(reg15)
+# both exper and rank are modifiers
+# 3 + gender * rank + gender * exper
+reg16 = lm(ln_sal94 ~ gender*rank + gender*exper + factor(dept) + clin + cert, data = data)
+summary(reg16)
+# gender * rank becomes non-significant
+```
+
+```{r functional}
+# piecewise regression
+data$experstar = ifelse(data$exper<16, 0, data$exper-16)
+reg_spline = lm(ln_sal94 ~ gender*exper + factor(dept) + clin + cert + experstar + rank, data = data)
+summary(reg_spline)
+
+# polynomial regression (log)
+data$ln_exper = log(data$exper)
+reg_ln = lm(ln_sal94 ~ gender*ln_exper + factor(dept) + clin + cert + rank, data = data)
+summary(reg_ln)
+```
+
+```{r selection}
+# AIC
+AIC(reg14)
+AIC(reg15)
+AIC(reg_spline)
+AIC(reg_ln)
+# BIC 
+AIC(reg14, k = log(length(data$ln_sal94)))
+AIC(reg15, k = log(length(data$ln_sal94)))
+AIC(reg_spline, k = log(length(data$ln_sal94)))
+AIC(reg_ln, k = log(length(data$ln_sal94)))
+```
+
+```{r diagnostics}
+plot(reg14)
+ols_plot_resid_stud_fit(reg14)
+ols_plot_resid_lev(reg14)
+```
+
+```{r stratification}
+# stratification by exper
+data_stra1 = filter(data, exper < 10)
+data_stra2 = filter(data, exper >= 10 & exper < 20)
+data_stra3 = filter(data, exper >= 20)
+reg_stra1 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
+summary(reg_stra1)
+reg_stra2 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
+summary(reg_stra2)
+reg_stra3 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
+summary(reg_stra3)
+
+# stratification by rank
+data_stra4 = filter(data, rank == 1)
+data_stra5 = filter(data, rank == 2)
+data_stra6 = filter(data, rank == 3)
+reg_stra4 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra4)
+summary(reg_stra4)
+reg_stra5 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra5)
+summary(reg_stra5)
+reg_stra6 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra6)
+summary(reg_stra6)
+```
+
