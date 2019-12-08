@@ -14,6 +14,10 @@ library(tidyverse)
 library(arsenal)
 library(HH)
 library(olsrr)
+library(broom)
+library(formattable)
+library(htmltools)
+library(webshot)
 ```
 
 ```{r message = FALSE, data}
@@ -31,7 +35,7 @@ data$ln_salavg = log(data$salavg)
 
 ```{r multicollinearity}
 # all covariates
-reg1 = lm(ln_sal94 ~ gender + factor(dept) + clin + prate + cert + exper + rank, data = data)
+reg1 = lm(ln_salavg ~ gender + factor(dept) + clin + prate + cert + exper + rank, data = data)
 summary(reg1)
 vif(reg1)
 
@@ -39,33 +43,33 @@ pred = data[,c(2, 4:8)]
 round(cor(pred), 3)
 
 # all covariates except clin
-reg2 = lm(ln_sal94 ~ gender + factor(dept) + prate + cert + exper + rank, data = data)
+reg2 = lm(ln_salavg ~ gender + factor(dept) + prate + cert + exper + rank, data = data)
 vif(reg2)
 # all covariates except prate
-reg3 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper + rank, data = data)
+reg3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper + rank, data = data)
 vif(reg3)
 # dropping prate leads to lower mean vif
 ```
 
 ```{r confounding}
 # gender only
-reg4 = lm(ln_sal94 ~ gender, data = data)
+reg4 = lm(ln_salavg ~ gender, data = data)
 summary(reg4)
 # gender + dept
-reg5 = lm(ln_sal94 ~ gender + factor(dept), data = data)
+reg5 = lm(ln_salavg ~ gender + factor(dept), data = data)
 summary(reg5)
 # gender + clin
-reg6 = lm(ln_sal94 ~ gender + clin, data = data)
+reg6 = lm(ln_salavg ~ gender + clin, data = data)
 summary(reg6)
 # gender + cert
-reg7 = lm(ln_sal94 ~ gender + cert, data = data)
+reg7 = lm(ln_salavg ~ gender + cert, data = data)
 summary(reg7)
 # gender + exper
-reg9 = lm(ln_sal94 ~ gender + exper, data = data)
-summary(reg9)
+reg8 = lm(ln_salavg ~ gender + exper, data = data)
+summary(reg8)
 # gender + rank
-reg10 = lm(ln_sal94 ~ gender + rank, data = data)
-summary(reg10)
+reg9 = lm(ln_salavg ~ gender + rank, data = data)
+summary(reg9)
 # all confounders
 summary(reg3)
 ```
@@ -73,58 +77,58 @@ summary(reg3)
 
 ```{r interaction}
 # 3 + gender * dept
-reg11 = lm(ln_sal94 ~ gender*factor(dept) + clin + cert + exper + rank, data = data)
-summary(reg11)
+reg10 = lm(ln_salavg ~ gender*factor(dept) + clin + cert + exper + rank, data = data)
+summary(reg10)
 # 3 + gender * clin
-reg12 = lm(ln_sal94 ~ gender*clin + factor(dept) + cert + exper + rank, data = data)
-summary(reg12)
+reg11 = lm(ln_salavg ~ gender*clin + factor(dept) + cert + exper + rank, data = data)
+summary(reg11)
 # 3 + gender * cert
-reg13 = lm(ln_sal94 ~ gender*cert + factor(dept) + cert + exper + rank, data = data)
-summary(reg13)
+reg12 = lm(ln_salavg ~ gender*cert + factor(dept) + clin + exper + rank, data = data)
+summary(reg12)
 # 3 + gender * exper
-reg14 = lm(ln_sal94 ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
-summary(reg14)
+reg13 = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
+summary(reg13)
 # 3 + gender * rank
-reg15 = lm(ln_sal94 ~ gender*rank + factor(dept) + clin + cert + exper, data = data)
-summary(reg15)
+reg14 = lm(ln_salavg ~ gender*rank + factor(dept) + clin + cert + exper, data = data)
+summary(reg14)
 # both exper and rank are modifiers
 # 3 + gender * rank + gender * exper
-reg16 = lm(ln_sal94 ~ gender*rank + gender*exper + factor(dept) + clin + cert, data = data)
-summary(reg16)
+reg15 = lm(ln_salavg ~ gender*rank + gender*exper + factor(dept) + clin + cert, data = data)
+summary(reg15)
 # gender * rank becomes non-significant
 ```
 
 ```{r functional}
 # piecewise regression
 data$experstar = ifelse(data$exper<16, 0, data$exper-16)
-reg_spline = lm(ln_sal94 ~ gender*exper + factor(dept) + clin + cert + experstar + rank, data = data)
+reg_spline = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + experstar + rank, data = data)
 summary(reg_spline)
 
 # polynomial regression (log)
 data$ln_exper = log(data$exper)
-reg_ln = lm(ln_sal94 ~ gender*ln_exper + factor(dept) + clin + cert + rank, data = data)
+reg_ln = lm(ln_salavg ~ gender*ln_exper + factor(dept) + clin + cert + rank, data = data)
 summary(reg_ln)
 ```
 
 ```{r selection}
-anova(reg3, reg14)
+anova(reg3, reg13)
 
 # AIC
+AIC(reg13)
 AIC(reg14)
-AIC(reg15)
 AIC(reg_spline)
 AIC(reg_ln)
 # BIC 
-AIC(reg14, k = log(length(data$ln_sal94)))
-AIC(reg15, k = log(length(data$ln_sal94)))
-AIC(reg_spline, k = log(length(data$ln_sal94)))
-AIC(reg_ln, k = log(length(data$ln_sal94)))
+AIC(reg13, k = log(length(data$ln_salavg)))
+AIC(reg14, k = log(length(data$ln_salavg)))
+AIC(reg_spline, k = log(length(data$ln_salavg)))
+AIC(reg_ln, k = log(length(data$ln_salavg)))
 ```
 
 ```{r diagnostics}
-plot(reg14)
-ols_plot_resid_stud_fit(reg14)
-ols_plot_resid_lev(reg14)
+plot(reg13)
+ols_plot_resid_stud_fit(reg13)
+ols_plot_resid_lev(reg13)
 ```
 
 ```{r stratification}
@@ -132,22 +136,68 @@ ols_plot_resid_lev(reg14)
 data_stra1 = filter(data, exper < 10)
 data_stra2 = filter(data, exper >= 10 & exper < 20)
 data_stra3 = filter(data, exper >= 20)
-reg_stra1 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
+reg_stra1 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
 summary(reg_stra1)
-reg_stra2 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
+reg_stra2 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
 summary(reg_stra2)
-reg_stra3 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
+reg_stra3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
 summary(reg_stra3)
 
 # stratification by rank
 data_stra4 = filter(data, rank == 1)
 data_stra5 = filter(data, rank == 2)
 data_stra6 = filter(data, rank == 3)
-reg_stra4 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra4)
+reg_stra4 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra4)
 summary(reg_stra4)
-reg_stra5 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra5)
+reg_stra5 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra5)
 summary(reg_stra5)
-reg_stra6 = lm(ln_sal94 ~ gender + factor(dept) + clin + cert + exper, data = data_stra6)
+reg_stra6 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra6)
 summary(reg_stra6)
 ```
+
+```{r tabular}
+# function to export formattable
+export_formattable = function(f, file, width = "100%", height = NULL, background = "white", delay = 0.2)
+    {w = as.htmlwidget(f, width = width, height = height)
+     path = html_print(w, background = background, viewer = NULL)
+     url = paste0("file:///", gsub("\\\\", "/", normalizePath(path)))
+     webshot(url,
+             file = file,
+             selector = ".formattable_widget",
+             delay = delay)
+     }
+# confounding
+tidy4 = tidy(reg4)
+tidy5 = tidy(reg5)
+tidy6 = tidy(reg6)
+tidy7 = tidy(reg7)
+tidy8 = tidy(reg8)
+tidy9 = tidy(reg9)
+con_df = rbind(tidy4[2, c(2:5)], tidy5[2, c(2:5)], tidy6[2, c(2:5)], tidy7[2, c(2:5)], tidy8[2, c(2:5)], tidy9[2, c(2:5)])
+con_df$coefficient.change = abs((con_df$estimate-tidy4$estimate[2])/tidy4$estimate[2])
+con_df$confounder = con_df$coefficient.change
+con_df$covariate = c("gender", "dept", "clin", "cert", "exper", "rank")
+con_ft = formattable(con_df[, c(7,1,4,5,6)], 
+                     align = c("l", rep("c", 4)),
+                     list(`covariate` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")), `coefficient.change` = percent, `confounder` = formatter("span", x ~ icontext(ifelse(x > 0.1, "ok", "remove"), ifelse(x > 0.1, "Yes", "No")), style = x ~ style(color = ifelse(x > 0.1, "green", "red"))))
+                     )
+# export formattable con_ft
+export_formattable(con_ft,"con_ft.png")
+# interaction
+tidy10 = tidy(reg10)
+tidy11 = tidy(reg11)
+tidy12 = tidy(reg12)
+tidy13 = tidy(reg13)
+tidy14 = tidy(reg14)
+int_df = rbind(tidy10[c(12:16), c(1:5)], tidy11[12, c(1:5)], tidy12[12, c(1:5)], tidy13[12, c(1:5)], tidy14[12, c(1:5)])
+int_df$interaction = int_df$p.value
+names(int_df)[1] = "covariate"
+int_ft = formattable(int_df[, c(1,2,5,6)], 
+                     align = c("l", rep("c", 3)),
+                     list(`covariate` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")), `interaction` = formatter("span", x ~ icontext(ifelse(x < 0.05, "ok", "remove"), ifelse(x < 0.05, "Yes", "No")), style = x ~ style(color = ifelse(x < 0.05, "green", "red"))))
+                     )
+# export formattable int_ft
+export_formattable(int_ft,"int_ft.png")
+```
+
 
