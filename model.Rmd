@@ -83,7 +83,7 @@ summary(reg10)
 reg11 = lm(ln_salavg ~ gender*clin + factor(dept) + cert + exper + rank, data = data)
 summary(reg11)
 # 3 + gender * cert
-reg12 = lm(ln_salavg ~ gender*cert + factor(dept) + cert + exper + rank, data = data)
+reg12 = lm(ln_salavg ~ gender*cert + factor(dept) + clin + exper + rank, data = data)
 summary(reg12)
 # 3 + gender * exper
 reg13 = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
@@ -111,7 +111,7 @@ summary(reg_ln)
 ```
 
 ```{r selection}
-anova(reg3, reg14)
+anova(reg3, reg13)
 
 # AIC
 AIC(reg13)
@@ -156,22 +156,6 @@ summary(reg_stra6)
 ```
 
 ```{r tabular}
-# confounding
-tidy4 = tidy(reg4)
-tidy5 = tidy(reg5)
-tidy6 = tidy(reg6)
-tidy7 = tidy(reg7)
-tidy8 = tidy(reg8)
-tidy9 = tidy(reg9)
-tidy10 = tidy(reg10)
-con_df = rbind(tidy4[2, c(2:5)], tidy5[2, c(2:5)], tidy6[2, c(2:5)], tidy7[2, c(2:5)], tidy8[2, c(2:5)], tidy9[2, c(2:5)])
-con_df$coefficient.change = abs((con_df$estimate-tidy4$estimate[2])/tidy4$estimate[2])
-con_df$confounder = con_df$coefficient.change
-con_df$covariate = c("gender", "dept", "clin", "cert", "exper", "rank")
-con_ft = formattable(con_df[, c(7,1,4,5,6)], 
-                     align = c("l", rep("c", 4)),
-                     list(`covariate` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")), `coefficient.change` = percent, `confounder` = formatter("span", x ~ icontext(ifelse(x > 0.1, "ok", "remove"), ifelse(x > 0.1, "Yes", "No")), style = x ~ style(color = ifelse(x > 0.1, "green", "red"))))
-                     )
 # function to export formattable
 export_formattable = function(f, file, width = "100%", height = NULL, background = "white", delay = 0.2)
     {w = as.htmlwidget(f, width = width, height = height)
@@ -182,7 +166,38 @@ export_formattable = function(f, file, width = "100%", height = NULL, background
              selector = ".formattable_widget",
              delay = delay)
      }
+# confounding
+tidy4 = tidy(reg4)
+tidy5 = tidy(reg5)
+tidy6 = tidy(reg6)
+tidy7 = tidy(reg7)
+tidy8 = tidy(reg8)
+tidy9 = tidy(reg9)
+con_df = rbind(tidy4[2, c(2:5)], tidy5[2, c(2:5)], tidy6[2, c(2:5)], tidy7[2, c(2:5)], tidy8[2, c(2:5)], tidy9[2, c(2:5)])
+con_df$coefficient.change = abs((con_df$estimate-tidy4$estimate[2])/tidy4$estimate[2])
+con_df$confounder = con_df$coefficient.change
+con_df$covariate = c("gender", "dept", "clin", "cert", "exper", "rank")
+con_ft = formattable(con_df[, c(7,1,4,5,6)], 
+                     align = c("l", rep("c", 4)),
+                     list(`covariate` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")), `coefficient.change` = percent, `confounder` = formatter("span", x ~ icontext(ifelse(x > 0.1, "ok", "remove"), ifelse(x > 0.1, "Yes", "No")), style = x ~ style(color = ifelse(x > 0.1, "green", "red"))))
+                     )
+# export formattable con_ft
 export_formattable(con_ft,"con_ft.png")
+# interaction
+tidy10 = tidy(reg10)
+tidy11 = tidy(reg11)
+tidy12 = tidy(reg12)
+tidy13 = tidy(reg13)
+tidy14 = tidy(reg14)
+int_df = rbind(tidy10[c(12:16), c(1:5)], tidy11[12, c(1:5)], tidy12[12, c(1:5)], tidy13[12, c(1:5)], tidy14[12, c(1:5)])
+int_df$interaction = int_df$p.value
+names(int_df)[1] = "covariate"
+int_ft = formattable(int_df[, c(1,2,5,6)], 
+                     align = c("l", rep("c", 3)),
+                     list(`covariate` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")), `interaction` = formatter("span", x ~ icontext(ifelse(x < 0.05, "ok", "remove"), ifelse(x < 0.05, "Yes", "No")), style = x ~ style(color = ifelse(x < 0.05, "green", "red"))))
+                     )
+# export formattable int_ft
+export_formattable(int_ft,"int_ft.png")
 ```
 
 
