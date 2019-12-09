@@ -1872,6 +1872,108 @@ export_formattable(int_ft,&quot;int_ft.png&quot;)</code></pre>
 ## 259 1.0445 3.08e-03 0.0403    
 ## 260 1.1169 1.54e-04 0.0580    
 ## 261 1.0803 1.22e-03 0.0426</code></pre>
+<pre class="r"><code># remove outliers in x
+data_outlierx = data[c(-56,-122,-184),]
+reg_outlierx = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_outlierx)
+summary(reg_outlierx)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ln_salavg ~ gender * exper + dept + clin + cert + 
+##     rank, data = data_outlierx)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.28224 -0.06967 -0.01314  0.07766  0.28377 
+## 
+## Coefficients:
+##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                     10.903753   0.030692 355.260  &lt; 2e-16 ***
+## genderMale                       0.095239   0.032811   2.903  0.00404 ** 
+## exper                            0.025954   0.003128   8.298 7.13e-15 ***
+## deptPhysiology                  -0.165764   0.025523  -6.495 4.60e-10 ***
+## deptGenetics                     0.184248   0.031542   5.841 1.64e-08 ***
+## deptPediatrics                   0.207317   0.031320   6.619 2.26e-10 ***
+## deptMedicine                     0.517730   0.025802  20.065  &lt; 2e-16 ***
+## deptSurgery                      0.919866   0.030801  29.864  &lt; 2e-16 ***
+## clinPrimarily clinical emphasis  0.225264   0.019087  11.802  &lt; 2e-16 ***
+## certBoard certified              0.204054   0.018653  10.940  &lt; 2e-16 ***
+## rankAssociate                    0.134496   0.020954   6.419 7.06e-10 ***
+## rankFull                         0.215152   0.023001   9.354  &lt; 2e-16 ***
+## genderMale:exper                -0.009175   0.003166  -2.898  0.00410 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1154 on 245 degrees of freedom
+## Multiple R-squared:  0.9505, Adjusted R-squared:  0.9481 
+## F-statistic: 392.2 on 12 and 245 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code># remove outliers in y
+data_outliery = data[c(-19,-58,-172,-216),]
+reg_outliery = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_outliery)
+summary(reg_outliery)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ln_salavg ~ gender * exper + dept + clin + cert + 
+##     rank, data = data_outliery)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.31670 -0.07865 -0.00703  0.07199  0.85833 
+## 
+## Coefficients:
+##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                     10.890519   0.036123 301.481  &lt; 2e-16 ***
+## genderMale                       0.143918   0.038284   3.759 0.000213 ***
+## exper                            0.029861   0.003818   7.820 1.59e-13 ***
+## deptPhysiology                  -0.169192   0.029069  -5.820 1.84e-08 ***
+## deptGenetics                     0.191114   0.035804   5.338 2.15e-07 ***
+## deptPediatrics                   0.224661   0.035479   6.332 1.15e-09 ***
+## deptMedicine                     0.556018   0.029623  18.770  &lt; 2e-16 ***
+## deptSurgery                      0.946561   0.035087  26.977  &lt; 2e-16 ***
+## clinPrimarily clinical emphasis  0.205531   0.021679   9.481  &lt; 2e-16 ***
+## certBoard certified              0.178603   0.021014   8.499 1.92e-15 ***
+## rankAssociate                    0.113641   0.023715   4.792 2.87e-06 ***
+## rankFull                         0.213152   0.027448   7.766 2.24e-13 ***
+## genderMale:exper                -0.014145   0.003875  -3.650 0.000320 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1304 on 244 degrees of freedom
+## Multiple R-squared:  0.9375, Adjusted R-squared:  0.9345 
+## F-statistic: 305.2 on 12 and 244 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code># remove influential points
+data_influential = data[c(-19,-58,-91,-122,-184,-216),]
+reg_influential = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_influential)
+summary(reg_influential)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ln_salavg ~ gender * exper + dept + clin + cert + 
+##     rank, data = data_influential)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.28001 -0.07117 -0.01186  0.07585  0.27247 
+## 
+## Coefficients:
+##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                     10.898096   0.032210 338.341  &lt; 2e-16 ***
+## genderMale                       0.106949   0.034239   3.124  0.00200 ** 
+## exper                            0.027567   0.003402   8.103 2.65e-14 ***
+## deptPhysiology                  -0.178715   0.025913  -6.897 4.61e-11 ***
+## deptGenetics                     0.183210   0.032748   5.595 5.97e-08 ***
+## deptPediatrics                   0.211465   0.031824   6.645 1.99e-10 ***
+## deptMedicine                     0.523157   0.026598  19.669  &lt; 2e-16 ***
+## deptSurgery                      0.925194   0.031377  29.487  &lt; 2e-16 ***
+## clinPrimarily clinical emphasis  0.226098   0.019613  11.528  &lt; 2e-16 ***
+## certBoard certified              0.196725   0.018901  10.408  &lt; 2e-16 ***
+## rankAssociate                    0.127377   0.021132   6.028 6.16e-09 ***
+## rankFull                         0.222617   0.024236   9.185  &lt; 2e-16 ***
+## genderMale:exper                -0.011366   0.003454  -3.291  0.00115 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1161 on 242 degrees of freedom
+## Multiple R-squared:  0.9508, Adjusted R-squared:  0.9484 
+## F-statistic:   390 on 12 and 242 DF,  p-value: &lt; 2.2e-16</code></pre>
 
 
 

@@ -200,3 +200,19 @@ export_formattable(int_ft,"int_ft.png")
 influence.measures(reg13)
 ```
 
+```{r remove}
+# remove outliers in x
+data_outlierx = data[c(-56,-122,-184),]
+reg_outlierx = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_outlierx)
+summary(reg_outlierx)
+# remove outliers in y
+data_outliery = data[c(-19,-58,-172,-216),]
+reg_outliery = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_outliery)
+summary(reg_outliery)
+# remove influential points
+data_influential = data[c(-19,-58,-91,-122,-184,-216),]
+reg_influential = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_influential)
+summary(reg_influential)
+```
+
+
