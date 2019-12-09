@@ -30,7 +30,7 @@ data = read_csv('./data/Lawsuit.csv') %>%
     gender = factor(gender, levels = c(0,1), labels = c("Female","Male")),
     clin = factor(clin, levels = c(0,1), labels = c("Primarily research emphasis","Primarily clinical emphasis")),
     cert = factor(cert, levels = c(0,1), labels = c("not certified","Board certified")),
-    # rank = factor(rank, levels = c(1,2,3), labels = c("Assistant","Associate","Full"))
+    rank = factor(rank, levels = c(1,2,3), labels = c("Assistant","Associate","Full"))
   )
 
 data$ln_sal94 = log(data$sal94)
@@ -94,8 +94,6 @@ summary(reg12)
 # 3 + gender * exper
 reg13 = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data)
 summary(reg13)
-reg_rank = lm(ln_salavg ~ gender*exper + dept + clin + cert + factor(rank), data = data)
-summary(reg_rank)
 # 3 + gender * rank
 reg14 = lm(ln_salavg ~ gender*rank + dept + clin + cert + exper, data = data)
 summary(reg14)
@@ -116,8 +114,6 @@ summary(reg_spline)
 ```{r selection}
 # compare with and without interaction term
 anova(reg3, reg13)
-# compare rank and factor(rank)
-anova(reg13, reg_rank)
 # compare linear and piecewise
 anova(reg13, reg_spline)
 # AIC
@@ -153,17 +149,6 @@ reg_medium = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_medi
 summary(reg_medium)
 reg_high = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_high)
 summary(reg_high)
-
-# stratification by rank
-data_assistant = filter(data, rank == 1)
-data_associate = filter(data, rank == 2)
-data_full = filter(data, rank == 3)
-reg_assistant = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_assistant)
-summary(reg_assistant)
-reg_associate = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_associate)
-summary(reg_associate)
-reg_full = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_full)
-summary(reg_full)
 ```
 
 ```{r tabular}
@@ -200,7 +185,7 @@ tidy11 = tidy(reg11)
 tidy12 = tidy(reg12)
 tidy13 = tidy(reg13)
 tidy14 = tidy(reg14)
-int_df = rbind(tidy10[c(12:16), c(1:5)], tidy11[12, c(1:5)], tidy12[12, c(1:5)], tidy13[12, c(1:5)], tidy14[12, c(1:5)])
+int_df = rbind(tidy10[c(13:17), c(1:5)], tidy11[13, c(1:5)], tidy12[13, c(1:5)], tidy13[13, c(1:5)], tidy14[c(13:14), c(1:5)])
 int_df$interaction = int_df$p.value
 names(int_df)[1] = "covariate"
 int_ft = formattable(int_df[, c(1,2,5,6)], 
@@ -210,3 +195,8 @@ int_ft = formattable(int_df[, c(1,2,5,6)],
 # export formattable int_ft
 export_formattable(int_ft,"int_ft.png")
 ```
+
+```{r influence}
+influence.measures(reg13)
+```
+
