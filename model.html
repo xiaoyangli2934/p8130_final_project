@@ -973,15 +973,15 @@ dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code># stratification by exper
-data_stra1 = filter(data, exper &lt; 10)
-data_stra2 = filter(data, exper &gt;= 10 &amp; exper &lt; 20)
-data_stra3 = filter(data, exper &gt;= 20)
-reg_stra1 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra1)
-summary(reg_stra1)</code></pre>
+data_low = filter(data, exper &lt; 10)
+data_medium = filter(data, exper &gt;= 10 &amp; exper &lt; 20)
+data_high = filter(data, exper &gt;= 20)
+reg_low = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_low)
+summary(reg_low)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + rank, 
-##     data = data_stra1)
+##     data = data_low)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -1005,12 +1005,12 @@ summary(reg_stra1)</code></pre>
 ## Residual standard error: 0.1425 on 129 degrees of freedom
 ## Multiple R-squared:  0.9203, Adjusted R-squared:  0.9147 
 ## F-statistic: 165.4 on 9 and 129 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>reg_stra2 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra2)
-summary(reg_stra2)</code></pre>
+<pre class="r"><code>reg_medium = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_medium)
+summary(reg_medium)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + rank, 
-##     data = data_stra2)
+##     data = data_medium)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -1034,12 +1034,12 @@ summary(reg_stra2)</code></pre>
 ## Residual standard error: 0.1194 on 92 degrees of freedom
 ## Multiple R-squared:  0.9418, Adjusted R-squared:  0.9361 
 ## F-statistic: 165.5 on 9 and 92 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>reg_stra3 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra3)
-summary(reg_stra3)</code></pre>
+<pre class="r"><code>reg_high = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_high)
+summary(reg_high)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + rank, 
-##     data = data_stra3)
+##     data = data_high)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -1063,15 +1063,15 @@ summary(reg_stra3)</code></pre>
 ## Multiple R-squared:  0.9652, Adjusted R-squared:  0.9399 
 ## F-statistic: 38.17 on 8 and 11 DF,  p-value: 5.988e-07</code></pre>
 <pre class="r"><code># stratification by rank
-data_stra4 = filter(data, rank == 1)
-data_stra5 = filter(data, rank == 2)
-data_stra6 = filter(data, rank == 3)
-reg_stra4 = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_stra4)
-summary(reg_stra4)</code></pre>
+data_assistant = filter(data, rank == 1)
+data_associate = filter(data, rank == 2)
+data_full = filter(data, rank == 3)
+reg_assistant = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_assistant)
+summary(reg_assistant)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + exper, 
-##     data = data_stra4)
+##     data = data_assistant)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -1095,12 +1095,12 @@ summary(reg_stra4)</code></pre>
 ## Residual standard error: 0.1541 on 102 degrees of freedom
 ## Multiple R-squared:  0.9126, Adjusted R-squared:  0.9049 
 ## F-statistic: 118.3 on 9 and 102 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>reg_stra5 = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_stra5)
-summary(reg_stra5)</code></pre>
+<pre class="r"><code>reg_associate = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_associate)
+summary(reg_associate)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + exper, 
-##     data = data_stra5)
+##     data = data_associate)
 ## 
 ## Residuals:
 ##       Min        1Q    Median        3Q       Max 
@@ -1124,12 +1124,12 @@ summary(reg_stra5)</code></pre>
 ## Residual standard error: 0.1033 on 54 degrees of freedom
 ## Multiple R-squared:  0.9621, Adjusted R-squared:  0.9558 
 ## F-statistic: 152.2 on 9 and 54 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>reg_stra6 = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_stra6)
-summary(reg_stra6)</code></pre>
+<pre class="r"><code>reg_full = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_full)
+summary(reg_full)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = ln_salavg ~ gender + dept + clin + cert + exper, 
-##     data = data_stra6)
+##     data = data_full)
 ## 
 ## Residuals:
 ##       Min        1Q    Median        3Q       Max 
