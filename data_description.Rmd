@@ -2,11 +2,12 @@
 title: "data description"
 author: "Guangling Xu"
 date: "2019/12/5"
-output: github_document
+output: word_document
 ---
 ```{r,include=FALSE, message=FALSE,warning=FALSE}
 library(tidyverse)
 library(patchwork)
+library(MASS)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -27,7 +28,7 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 
 ```{r import data,echo=FALSE,message=FALSE,warning=FALSE}
-lawsuit = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>% 
+data = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>% 
   mutate(
   dept = factor(dept, levels = c("1","2","3","4","5","6"),
          labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")
@@ -43,26 +44,9 @@ lawsuit = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>%
   )
 ```
 
-### Table 1 
 
-Summarizing all variables by Gender(the main covariate of interest)
-
-```{r,echo=FALSE}
-
-table1::label(lawsuit$dept) <- "Department"
-table1::label(lawsuit$clin) <- "Clinical Emphasis"
-table1::label(lawsuit$cert) <- "Certified"
-table1::label(lawsuit$prate) <- "Publication Rate"
-table1::label(lawsuit$exper) <- "Experience"
-table1::label(lawsuit$rank) <- "Rank"
-table1::label(lawsuit$sal94) <- "Salary in 1994"
-table1::label(lawsuit$sal95) <- "Salary after Increment"
-
-table1::table1(~dept + clin + cert + prate+ exper+ rank+ sal94+ sal95| gender, data = lawsuit)
-```
-
-
-```{r, results="asis"}
+**Table 1: Summary Statistics of lawsuit Data**
+```{r, results="asis", echo=FALSE}
 library(arsenal)
 my_controls <- tableby.control(
   test = T,
@@ -86,87 +70,153 @@ my_labels <- list(
   exper = "Experience",
   rank = "Rank",
   sal94 = "Salary in 1994",
-  sal95 = "Salary after Increment"
+  sal95 = "Salary after Increment in 1995"
 )
 
- 
+data1 = data %>% 
+  dplyr::select(-id)
+
 table_two <- tableby(gender ~ .,
-  data = lawsuit,
+  data = data1 ,
   control = my_controls
 )
  
 summary(table_two,
   labelTranslations = my_labels,
-  title = "Summary Statistic of lawsuit Data",
   pfootnote = TRUE,text = FALSE
-)
+) 
 ```
 
+* Values are count(percentage) for categorical variables or mean(SD), median(25% quantile, 75% quantile), min-max, count of missing values for continuous variables.* Publication Rate: Number of years between CV date and MD date;Experience: Number of years since obtaining MD; Rank: a proxy for productivity
+
+Data Description
+================================
+Among the 261 participants in this study, 40.6% (n = 106) were female. As shown in *Table 1, Graph 1*, participants who were female were more likely to be in the department of medicine , premarily clinical emphasis, board certified and assistant. Participants who were male were more likely to be in the department of medicine, premarily clinical emphasis, board certified, full professor.The mean publication rate was 4.6(sd = 1.9) for male and 5.4(sd = 1.9) for female. The mean number of years since obtaining MD was 12.1(sd = 6.7)for male and 7.5(sd = 4.2) for female. The mean salary in 1994 was 177338.8(sd = 85930.5) for male and 118871.3(sd = 56168.0) for female. Salary after increment in 1995 was 194914.1(sd = 94902.7) for male and 130876.9(sd = 88778.4) for female. 
 
 
+Data Distribution
+================================
+In *Graph 1*, distributions of publication rate among male and female are alike.The publication rate of male concentrated around 3 pieces per year and 7.4 pieces per year,The publication rate of female concentrated around 3.7 pieces per year and 7.6 per year.Female published faster than male on average. Plot of distribution of number of years since obtaining MD showed that female, on average, had less experiences than male.The distributions of two genders were all right-skewed, meaning there were some extreme high values of experiences. Distribution plot of salary in 1994 indicated that female earned less than male on average.Some extreme high values of salary biased the distribution into right-skewed. Distribution plot of salary in 1995 after increment illustrated that female earned less than male on average.Some extreme high values of salary biased the distribution into right-skewed. Overall, salary distribution in 1994 and 1995 looks alike.Therefore, mean of these two years were used in our model as the response.
 
-
-Results
-------------------------------
-Among the 261 participants in this study, 40.6% (n = 106) were female. As shown in *Table 1*, participants who were female were more likely to be in the department of Medicine , premarily clinical emphasis, board certified and assistant. The mean publication rate was 4.6(sd = 1.9) for male and 5.4(sd = 1.9) for female. The mean number of years since obtaining MD was 12.1(sd = 6.7)for male and 7.5(sd = 4.2) for female. The mean salary in 1994 was 177338.8(sd = 85930.5) for male and 118871.3(sd = 56168.0) for female. Salary after increment was 194914.1(sd = 94902.7) for male and 130876.9(sd = 88778.4) for female. 
-
-
-
-### Distribution
-
-```{r,echo = FALSE}
-lawsuit1 = lawsuit %>% 
+**Graph 1: Distribution of Categorical predictors and Continuous predictors in lawsuit dataset.Grouped by gender**
+```{r,echo = FALSE,fig.width = 8, fig.height = 10}
+lawsuit = data %>% 
   group_by(gender) %>% 
   mutate(
     mean_prate = mean(prate),
     mean_exper = mean(exper),
     mean_sal94 = mean(sal94),
-    mean_sal95 = mean(sal95)
+    mean_sal95 = mean(sal95),
+    mean_year = mean(sal94 + sal95)/2
   )
 
 dept_plot = ggplot(lawsuit, aes(x = dept)) +
   geom_bar(aes(fill = gender))+
-   theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")
+   theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")+
+  labs(
+    title = "Distribution of Department by Gender",
+    x = "Department",
+    y = "Count"
+  )
            
 clin_plot = ggplot(lawsuit, aes(x = clin))+
   geom_bar(aes(fill = gender))+
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")+
+  labs(
+    title = "Distribution of Primarily Emphasis by Gender",
+    x = "Primarily Emphasis",
+    y = "Count"
+  )
 
 cert_plot = ggplot(lawsuit, aes(x = cert))+
   geom_bar(aes(fill = gender))+
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")+
+  labs(
+    title = "Distribution of Certification Status by Gender",
+    x = "Certification Status",
+    y = "Count"
+  )
 
 prate_plot = ggplot(lawsuit, aes(x = prate))+
   geom_density(aes(fill= gender,y = ..count..),alpha = 0.4)+
    geom_vline(aes(xintercept = mean_prate, color = gender),
-             data = lawsuit1, linetype = "dashed")
+             data = lawsuit, linetype = "dashed")+
+  labs(
+    title = "Distribution Publication Rate by Gender",
+    x = "Publication Rate",
+    y = "Count"
+  )
+
 
 rank_plot = ggplot(lawsuit, aes(x = rank))+
   geom_bar(aes(fill = gender))+
-  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")
+  theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45))+ theme(legend.position = "top")+
+  labs(
+    title = "Distribution of Rank by Gender",
+    x = "Rank",
+    y = "Count"
+  )
 
-exper_plot = ggplot(lawsuit1, aes(x = exper))+
+exper_plot = ggplot(lawsuit, aes(x = exper))+
   geom_density(aes(fill= gender,y = ..count..),alpha = 0.4)+
    geom_vline(aes(xintercept = mean_exper, color = gender),
-             data = lawsuit1, linetype = "dashed")
+             data = lawsuit, linetype = "dashed")+
+  labs(
+    title = "Distribution of Experience by Gender",
+    x = "Experience",
+    y = "Count"
+  )
 
-sal94_plot = ggplot(lawsuit1, aes(x = sal94))+
+sal94_plot = ggplot(lawsuit, aes(x = sal94))+
   geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
   geom_vline(aes(xintercept = mean_sal94, color = gender),
-             data = lawsuit1, linetype = "dashed")
+             data = lawsuit, linetype = "dashed")+
+  labs(
+    title = "Distribution of Salary in 1994 by Gender",
+    x = "Salary in 1994",
+    y = "Count"
+  )
 
-sal95_plot = ggplot(lawsuit1, aes(x = sal95))+
+sal95_plot = ggplot(lawsuit, aes(x = sal95))+
   geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
   geom_vline(aes(xintercept = mean_sal95, color = gender),
-             data = lawsuit1, linetype = "dashed")
+             data = lawsuit, linetype = "dashed")+
+   labs(
+    title = "Distribution of Salary in 1995 by Gender",
+    x = "Salary in 1995",
+    y = "Count"
+  )
 
-(dept_plot | clin_plot) / (cert_plot | rank_plot)  
-(prate_plot |sal94_plot) /(sal95_plot | exper_plot)
+mean_plot = ggplot(lawsuit, aes(x = sal95))+
+  geom_density(aes(fill = gender, y = ..count..), alpha = 0.4)+
+  geom_vline(aes(xintercept = mean_year, color = gender),
+             data = lawsuit, linetype = "dashed")+
+   labs(
+    title = "Distribution of Mean Salary in two years",
+    x = "Mean Salary in two years",
+    y = "Count"
+  ) 
+
+(dept_plot | clin_plot)/
+(cert_plot | rank_plot)
+  
+(prate_plot |exper_plot)/(
+(sal94_plot |sal95_plot)/mean_plot)
 ```
 
 Transformation
 -------------------------
+ 
+Based on the investigation of the distribution, to meet the assumption that response value y is normal, "salary" needs transformation. 
 
-Use box cox to do transformation for sal94 and sal95
+```{r, echo = FALSE, fig.height=10/2.54, fig.width= 10/2.54}
+data2 = data %>%
+  furniture::mutate_rowmeans("94_95_mean", sal94, sal95)
 
+data = full_join(data, data2)
+
+multi_fit = lm(`94_95_mean`~ factor(dept)+ factor(gender)+ factor(clin)+ factor(cert)+ prate + exper +factor(rank) , data = data)
+boxcox(multi_fit)
+```
+Based on the plot above, we need to do log-transformation for the mean value of sal94 and sal95 to meet the assumption of normality.
 

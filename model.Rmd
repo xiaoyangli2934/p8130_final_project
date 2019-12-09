@@ -21,13 +21,16 @@ library(webshot)
 ```
 
 ```{r message = FALSE, data}
+data_raw = data = read_csv('./data/Lawsuit.csv') %>%
+  janitor::clean_names()
 data = read_csv('./data/Lawsuit.csv') %>%
   janitor::clean_names() %>%
   mutate(
-    gender = factor(gender, levels = c(0,1), labels = c("female","male")),
-    clin = factor(clin, levels = c(0,1)),
-    cert = factor(cert, levels = c(0,1)),
-    rank = factor(rank, levels = c(1,2,3))
+    dept = factor(dept, levels = c(1,2,3,4,5,6), labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")),
+    gender = factor(gender, levels = c(0,1), labels = c("Female","Male")),
+    clin = factor(clin, levels = c(0,1), labels = c("Primarily research emphasis","Primarily clinical emphasis")),
+    cert = factor(cert, levels = c(0,1), labels = c("not certified","Board certified")),
+    # rank = factor(rank, levels = c(1,2,3), labels = c("Assistant","Associate","Full"))
   )
 
 data$ln_sal94 = log(data$sal94)
@@ -38,18 +41,18 @@ data$ln_salavg = log(data$salavg)
 
 ```{r multicollinearity}
 # all covariates
-reg1 = lm(ln_salavg ~ gender + factor(dept) + clin + prate + cert + exper + rank, data = data)
+reg1 = lm(ln_salavg ~ gender + dept + clin + prate + cert + exper + rank, data = data)
 summary(reg1)
 vif(reg1)
 
-pred = data[,c(2, 4:8)]
+pred = data_raw[,c(2, 4:8)]
 round(cor(pred), 3)
 
 # all covariates except clin
-reg2 = lm(ln_salavg ~ gender + factor(dept) + prate + cert + exper + rank, data = data)
+reg2 = lm(ln_salavg ~ gender + dept + prate + cert + exper + rank, data = data)
 vif(reg2)
 # all covariates except prate
-reg3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper + rank, data = data)
+reg3 = lm(ln_salavg ~ gender + dept + clin + cert + exper + rank, data = data)
 vif(reg3)
 # dropping prate leads to lower mean vif
 ```
@@ -59,7 +62,7 @@ vif(reg3)
 reg4 = lm(ln_salavg ~ gender, data = data)
 summary(reg4)
 # gender + dept
-reg5 = lm(ln_salavg ~ gender + factor(dept), data = data)
+reg5 = lm(ln_salavg ~ gender + dept, data = data)
 summary(reg5)
 # gender + clin
 reg6 = lm(ln_salavg ~ gender + clin, data = data)
@@ -80,82 +83,87 @@ summary(reg3)
 
 ```{r interaction}
 # 3 + gender * dept
-reg10 = lm(ln_salavg ~ gender*factor(dept) + clin + cert + exper + rank, data = data)
+reg10 = lm(ln_salavg ~ gender*dept + clin + cert + exper + rank, data = data)
 summary(reg10)
 # 3 + gender * clin
-reg11 = lm(ln_salavg ~ gender*clin + factor(dept) + cert + exper + rank, data = data)
+reg11 = lm(ln_salavg ~ gender*clin + dept + cert + exper + rank, data = data)
 summary(reg11)
 # 3 + gender * cert
-reg12 = lm(ln_salavg ~ gender*cert + factor(dept) + clin + exper + rank, data = data)
+reg12 = lm(ln_salavg ~ gender*cert + dept + clin + exper + rank, data = data)
 summary(reg12)
 # 3 + gender * exper
-reg13 = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
+reg13 = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data)
 summary(reg13)
+reg_rank = lm(ln_salavg ~ gender*exper + dept + clin + cert + factor(rank), data = data)
+summary(reg_rank)
 # 3 + gender * rank
-reg14 = lm(ln_salavg ~ gender*rank + factor(dept) + clin + cert + exper, data = data)
+reg14 = lm(ln_salavg ~ gender*rank + dept + clin + cert + exper, data = data)
 summary(reg14)
 # both exper and rank are modifiers
 # 3 + gender * rank + gender * exper
-reg15 = lm(ln_salavg ~ gender*rank + gender*exper + factor(dept) + clin + cert, data = data)
+reg15 = lm(ln_salavg ~ gender*rank + gender*exper + dept + clin + cert, data = data)
 summary(reg15)
 # gender * rank becomes non-significant
 ```
 
 ```{r functional}
 # piecewise regression
-data$experstar = ifelse(data$exper < 16, 0, data$exper - 16)
-reg_spline = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + experstar + rank, data = data)
+data$experstar = ifelse(data$exper<16, 0, data$exper-16)
+reg_spline = lm(ln_salavg ~ gender*exper + dept + clin + cert + experstar + rank, data = data)
 summary(reg_spline)
-
-# polynomial regression (log)
-data$ln_exper = log(data$exper)
-reg_ln = lm(ln_salavg ~ gender*ln_exper + factor(dept) + clin + cert + rank, data = data)
-summary(reg_ln)
 ```
 
 ```{r selection}
+# compare with and without interaction term
 anova(reg3, reg13)
-
+# compare rank and factor(rank)
+anova(reg13, reg_rank)
+# compare linear and piecewise
+anova(reg13, reg_spline)
 # AIC
 AIC(reg13)
 AIC(reg14)
 AIC(reg_spline)
-AIC(reg_ln)
 # BIC 
 AIC(reg13, k = log(length(data$ln_salavg)))
 AIC(reg14, k = log(length(data$ln_salavg)))
 AIC(reg_spline, k = log(length(data$ln_salavg)))
-AIC(reg_ln, k = log(length(data$ln_salavg)))
 ```
 
-```{r diagnostics}
-plot(reg13)
+```{r diagnostics, message = FALSE}
+png('reg13%03d.png', width = 6, height = 6, units='in', res = 300)
+plot(reg13, ask = FALSE)
 ols_plot_resid_stud_fit(reg13)
 ols_plot_resid_lev(reg13)
+dev.off()
+png("reg13all.png", width= 6, height = 6, units = 'in', res = 300)
+layout(matrix(1:4, ncol = 2))
+plot(reg13, ask = FALSE)
+dev.off()
 ```
 
 ```{r stratification}
 # stratification by exper
-data_stra1 = filter(data, exper < 10)
-data_stra2 = filter(data, exper >= 10 & exper < 20)
-data_stra3 = filter(data, exper >= 20)
-reg_stra1 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
-summary(reg_stra1)
-reg_stra2 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
-summary(reg_stra2)
-reg_stra3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
-summary(reg_stra3)
+data_low = filter(data, exper < 10)
+data_medium = filter(data, exper >= 10 & exper < 20)
+data_high = filter(data, exper >= 20)
+reg_low = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_low)
+summary(reg_low)
+reg_medium = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_medium)
+summary(reg_medium)
+reg_high = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_high)
+summary(reg_high)
 
 # stratification by rank
-data_stra4 = filter(data, rank == 1)
-data_stra5 = filter(data, rank == 2)
-data_stra6 = filter(data, rank == 3)
-reg_stra4 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra4)
-summary(reg_stra4)
-reg_stra5 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra5)
-summary(reg_stra5)
-reg_stra6 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + exper, data = data_stra6)
-summary(reg_stra6)
+data_assistant = filter(data, rank == 1)
+data_associate = filter(data, rank == 2)
+data_full = filter(data, rank == 3)
+reg_assistant = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_assistant)
+summary(reg_assistant)
+reg_associate = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_associate)
+summary(reg_associate)
+reg_full = lm(ln_salavg ~ gender + dept + clin + cert + exper, data = data_full)
+summary(reg_full)
 ```
 
 ```{r tabular}
@@ -202,5 +210,3 @@ int_ft = formattable(int_df[, c(1,2,5,6)],
 # export formattable int_ft
 export_formattable(int_ft,"int_ft.png")
 ```
-
-

@@ -103,7 +103,6 @@ p-value of 2 spline is larger than 0.05. Alao, p-value of new piecewise model is
 
 ## Diagnostic
 
-
 ### multicollinearity
 ```{r}
 ## stratify by exper
