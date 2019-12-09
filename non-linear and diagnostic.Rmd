@@ -1,11 +1,13 @@
 ---
-title: "nonlinear"
+title: "model diagnostic"
 author: "Xiaoyang Li"
 date: "2019/12/8"
 output: html_document
 ---
 ```{r}
 library(tidyverse)
+library(olsrr)
+library(HH)
 ```
 
 
@@ -33,7 +35,7 @@ summary(reg13)
 ```
 
 
-## Non-linear models
+## functional form for continuous predictor
 ```{r scatter plot}
 data %>% 
   ggplot(aes(x = exper, y = ln_salavg)) +
@@ -99,11 +101,61 @@ anova(reg13, pw_exper)
 p-value of 2 spline is larger than 0.05. Alao, p-value of new piecewise model is larger than 0.05. There is no need to use piecewise model to improve our `reg13`.
 
 
-Diagnostic
+## Diagnostic
+
+
+### multicollinearity
+```{r}
+## stratify by exper
+data_stra1 = filter(data, exper < 10)
+data_stra2 = filter(data, exper >= 10 & exper < 20)
+data_stra3 = filter(data, exper >= 20)
+reg_stra1 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
+summary(reg_stra1)
+reg_stra2 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
+summary(reg_stra2)
+reg_stra3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
+summary(reg_stra3)
+
+vif(reg_stra1)
+vif(reg_stra2)
+vif(reg_stra3)
+```
+According to the vif results above, there is no predictor with vif larger than 5. So none of predictor's coefficient might be misleading due to collinearity.
+
+### assumptions
 ```{r}
 par(mfrow = c(2,2))
 plot(reg13)
+```
+Based on the diagnostic plots above, we can see the constant variance assumptions hold well. The curves in residuals vs fitted plot are horizontal and bounce around 0 which indicates that constant variance is satisfied in our model. Scale-location plot shows the same thing. No.184 observations deviates from the normal line on the qq plot means it might be a outlier. Excepr from this observation, other observations satisfy normality pretty well.
+
+In addition, the same observation is close to the 0.5 cook's distance in residuals vs leverage plot, which means No.184 observation might be influential.
+
+### outlier and influential points
+```{r}
 ols_plot_resid_stud_fit(reg13)
 ols_plot_resid_lev(reg13)
 ```
-Based on the diagnostic plots above, we can see the assumptions hold well. The curves in residuals vs fitted plot are horizontal and bounce around 0 which indicates that constant variance is satisfied in our model. Scale-location plot shows the same thing. One of observations deviates from the normal line on the qq plot. The same observation is close to the 0.5 cook's distance, which mean No.184 observation might be influential.
+In the outlier and levarage Diagnostics plot, we can find 56, 82, 122, 132, 174, 184, 204, 208 are outliers, but only 184 obervation are far away from others.
+
+```{r}
+data_o = data[-c(184),]
+reg13_o = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_o)
+summary(reg13_o)
+
+data_o_ = data[-c(56, 82, 122, 132, 174, 184, 204, 208),]
+reg13_o_ = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_o_)
+summary(reg13_o_)
+```
+After deleting no.184 observation, several coefficient change. Specifically, coefficient of gender changes a lot (0.129 to 0.098). There might be 
+
+19, 58, 172, 216 are potential influential points. I will delete these four point in `reg_i`
+```{r}
+data_i = data[-c(19, 58, 172, 216),]
+reg13_i = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_i)
+summary(reg13_i)
+```
+After comparing summary results of `reg13` and `reg13_i`, adjusted R-squared improve a little. Coefficients of all predictor don't change largely. So 19, 58, 172, 216 are not influential points after testing. 
+
+
