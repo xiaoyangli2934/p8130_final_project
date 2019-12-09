@@ -4,7 +4,7 @@ author: "Xiaoyang Li"
 date: "2019/12/8"
 output: html_document
 ---
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 library(olsrr)
 library(HH)
@@ -29,11 +29,6 @@ data$ln_salavg = log(data$salavg)
 ```
 
 
-```{r}
-reg13 = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data)
-summary(reg13)
-```
-
 
 ## functional form for continuous predictor
 ```{r scatter plot}
@@ -44,7 +39,6 @@ data %>%
 ```
 
 The only continuous variable is `exper`. So I made scatter plot for `exper` and `ln_salavg`. According to the scatter plot, I hypothesis there is non-linear relationship between `exper` and `ln_salavg`. 
-
 
 ### polynomial
 
