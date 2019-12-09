@@ -111,43 +111,26 @@ summary(reg15)
 data$experstar = ifelse(data$exper<16, 0, data$exper-16)
 reg_spline = lm(ln_salavg ~ gender*exper + dept + clin + cert + experstar + rank, data = data)
 summary(reg_spline)
-
-# polynomial regression (log)
-data$ln_exper = log(data$exper)
-reg_ln = lm(ln_salavg ~ gender*ln_exper + dept + clin + cert + rank, data = data)
-summary(reg_ln)
 ```
 
 ```{r selection}
 # compare with and without interaction term
 anova(reg3, reg13)
-# function to calculate the F-stat to compare Model 1 and Model 2
-model_compare = function(reg1, reg2){
-  d1 = dim(anova(reg1))[[1]]
-  d2 = dim(anova(reg2))[[1]]
-  a1 = anova(reg1)
-  a2 = anova(reg2)
-  num = (a1$`Sum Sq`[d1] - a2$`Sum Sq`[d2])/(a1$Df[d1] - a2$Df[d2])
-  deno = a2$`Sum Sq`[d2]/a2$Df[d2]
-  f = num/deno
-  pv = pf(q = f, df1 = a1$Df[d1] - a2$Df[d2], df2 = a2$Df[d2], lower.tail = FALSE)
-  c(F_stat = f, p_value = pv)
-}
 # compare rank and factor(rank)
-model_compare(reg13, reg_rank)
+anova(reg13, reg_rank)
+# compare linear and piecewise
+anova(reg13, reg_spline)
 # AIC
 AIC(reg13)
 AIC(reg14)
 AIC(reg_spline)
-AIC(reg_ln)
 # BIC 
 AIC(reg13, k = log(length(data$ln_salavg)))
 AIC(reg14, k = log(length(data$ln_salavg)))
 AIC(reg_spline, k = log(length(data$ln_salavg)))
-AIC(reg_ln, k = log(length(data$ln_salavg)))
 ```
 
-```{r diagnostics}
+```{r diagnostics, message = FALSE}
 png('reg13%03d.png', width = 6, height = 6, units='in', res = 300)
 plot(reg13, ask = FALSE)
 ols_plot_resid_stud_fit(reg13)

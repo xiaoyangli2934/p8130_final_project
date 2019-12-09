@@ -915,39 +915,6 @@ summary(reg_spline)</code></pre>
 ## Residual standard error: 0.1311 on 248 degrees of freedom
 ## Multiple R-squared:  0.9367, Adjusted R-squared:  0.9336 
 ## F-statistic: 305.6 on 12 and 248 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code># polynomial regression (log)
-data$ln_exper = log(data$exper)
-reg_ln = lm(ln_salavg ~ gender*ln_exper + dept + clin + cert + rank, data = data)
-summary(reg_ln)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = ln_salavg ~ gender * ln_exper + dept + clin + cert + 
-##     rank, data = data)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.34013 -0.07632 -0.01206  0.07560  0.99237 
-## 
-## Coefficients:
-##                                  Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                     10.677017   0.048899 218.348  &lt; 2e-16 ***
-## genderMale                       0.037773   0.063945   0.591    0.555    
-## ln_exper                         0.180488   0.024147   7.475 1.32e-12 ***
-## deptPhysiology                  -0.166419   0.029910  -5.564 6.80e-08 ***
-## deptGenetics                     0.171294   0.037216   4.603 6.65e-06 ***
-## deptPediatrics                   0.216611   0.036621   5.915 1.09e-08 ***
-## deptMedicine                     0.545610   0.030249  18.037  &lt; 2e-16 ***
-## deptSurgery                      0.933920   0.036288  25.736  &lt; 2e-16 ***
-## clinPrimarily clinical emphasis  0.217557   0.022347   9.736  &lt; 2e-16 ***
-## certBoard certified              0.174356   0.021761   8.012 4.35e-14 ***
-## rank                             0.106438   0.014116   7.540 8.75e-13 ***
-## genderMale:ln_exper             -0.005909   0.029416  -0.201    0.841    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.1365 on 249 degrees of freedom
-## Multiple R-squared:  0.931,  Adjusted R-squared:  0.928 
-## F-statistic: 305.6 on 11 and 249 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code># compare with and without interaction term
 anova(reg3, reg13)</code></pre>
 <pre><code>## Analysis of Variance Table
@@ -959,22 +926,25 @@ anova(reg3, reg13)</code></pre>
 ## 2    249 4.2751  1   0.20115 11.716 0.0007244 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-<pre class="r"><code># function to calculate the F-stat to compare Model 1 and Model 2
-model_compare = function(reg1, reg2){
-  d1 = dim(anova(reg1))[[1]]
-  d2 = dim(anova(reg2))[[1]]
-  a1 = anova(reg1)
-  a2 = anova(reg2)
-  num = (a1$`Sum Sq`[d1] - a2$`Sum Sq`[d2])/(a1$Df[d1] - a2$Df[d2])
-  deno = a2$`Sum Sq`[d2]/a2$Df[d2]
-  f = num/deno
-  pv = pf(q = f, df1 = a1$Df[d1] - a2$Df[d2], df2 = a2$Df[d2], lower.tail = FALSE)
-  c(F_stat = f, p_value = pv)
-}
-# compare rank and factor(rank)
-model_compare(reg13, reg_rank)</code></pre>
-<pre><code>##    F_stat   p_value 
-## 0.5328140 0.4661151</code></pre>
+<pre class="r"><code># compare rank and factor(rank)
+anova(reg13, reg_rank)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: ln_salavg ~ gender * exper + dept + clin + cert + rank
+## Model 2: ln_salavg ~ gender * exper + dept + clin + cert + factor(rank)
+##   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
+## 1    249 4.2751                           
+## 2    248 4.2660  1 0.0091652 0.5328 0.4661</code></pre>
+<pre class="r"><code># compare linear and piecewise
+anova(reg13, reg_spline)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: ln_salavg ~ gender * exper + dept + clin + cert + rank
+## Model 2: ln_salavg ~ gender * exper + dept + clin + cert + experstar + 
+##     rank
+##   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
+## 1    249 4.2751                           
+## 2    248 4.2643  1   0.01088 0.6328 0.4271</code></pre>
 <pre class="r"><code># AIC
 AIC(reg13)</code></pre>
 <pre><code>## [1] -306.4686</code></pre>
@@ -982,8 +952,6 @@ AIC(reg13)</code></pre>
 <pre><code>## [1] -301.6932</code></pre>
 <pre class="r"><code>AIC(reg_spline)</code></pre>
 <pre><code>## [1] -305.1337</code></pre>
-<pre class="r"><code>AIC(reg_ln)</code></pre>
-<pre><code>## [1] -284.9706</code></pre>
 <pre class="r"><code># BIC 
 AIC(reg13, k = log(length(data$ln_salavg)))</code></pre>
 <pre><code>## [1] -260.1298</code></pre>
@@ -991,8 +959,6 @@ AIC(reg13, k = log(length(data$ln_salavg)))</code></pre>
 <pre><code>## [1] -255.3544</code></pre>
 <pre class="r"><code>AIC(reg_spline, k = log(length(data$ln_salavg)))</code></pre>
 <pre><code>## [1] -255.2304</code></pre>
-<pre class="r"><code>AIC(reg_ln, k = log(length(data$ln_salavg)))</code></pre>
-<pre><code>## [1] -238.6319</code></pre>
 <pre class="r"><code>png('reg13%03d.png', width = 6, height = 6, units='in', res = 300)
 plot(reg13, ask = FALSE)
 ols_plot_resid_stud_fit(reg13)
