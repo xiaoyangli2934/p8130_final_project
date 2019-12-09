@@ -147,7 +147,7 @@ data_o_ = data[-c(56, 82, 122, 132, 174, 184, 204, 208),]
 reg13_o_ = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_o_)
 summary(reg13_o_)
 ```
-After deleting no.184 observation, several coefficient change. Specifically, coefficient of gender changes a lot (0.129 to 0.098). There might be 
+After deleting no.184 observation, several coefficient change. Specifically, coefficient of gender changes a lot (0.129 to 0.098). There might be other potential preditor we didn't take into consideration. 
 
 19, 58, 172, 216 are potential influential points. I will delete these four point in `reg_i`
 ```{r}
