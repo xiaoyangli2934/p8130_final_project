@@ -1,0 +1,37 @@
+---
+title: "Final Project"
+author: "Guangling Xu Shenglin Liu Xiaoyang Li Jingyu Fu"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Abstract
+
+**Background**
+
+**Methods**
+
+**Results**
+
+**Conclusions**
+
+## Introduction
+
+Gender inequality has always been a hotspot in society. Studies have shown gender inequalities in multiple fields, including economic participation and opportunity, educational attainment, health and survival, political empowerment^[1]. Among those four, gender gap in salary reveals the one of deepest social inequalities and hence is of greatest concern. 
+
+Gender gap in salary is discovered in various fields, including political, educational and economical fields. The overall result is that female has 20% less the salary compared to the male^[2]. However, it is less commonly talked about that the gender gap also exists in payment of doctors. Doctors are believed to be one of the most high class careers in the world, and hence it is intuitively believed that there should be less gender inequality of salary in doctors. In fact, unlike our intuitive, male doctors earn 20% more salary than female in pediatric emergency nationwide^[3]. This inequality is partially dismissed by the fact that male and female doctors are in different professional fields, therefore the study of gender gap in salary within more specific medical fields is heavily lacking. 
+
+To address this problem, our study focuses on finding association between gender and salary to see if there really exists an inequality in gender. Considering that gender gap could vary from field to field, we took different subfields in the overall medical field, such as Biochemistry, Physiology and Genetics, as our variables. Moreover, to specify the effect of gender inequality and divide it from the effect of each person’s professional ability on salary, we added variables such as publication rates and career rank to our association study. 
+
+
+
+
+## References:
+
+[1] The Global Gender Gap Report 2018.  world economic forum.   2018
+
+[2] The global rage report 2018.  international labor organization.  2018
+
+[3] Female doctors in Houston earn much less than men in same job. Jenny Deam. Huston Chronical.  April26, 2017 
+

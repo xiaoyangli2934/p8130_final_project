@@ -53,6 +53,22 @@ rbind(
   broom::glance(lm6)
 )
 
+lm7 = lm(ln_sal94 ~ gender + clin + dept, data = lawsuit)
+lm8 = lm(ln_sal94 ~ gender + clin + cert, data = lawsuit)
+lm9 = lm(ln_sal94 ~ gender + clin + exper, data = lawsuit)
+lm10 = lm(ln_sal94 ~ gender + clin + rank, data = lawsuit)
+
+
+rbind(
+  broom::glance(lm7),
+  broom::glance(lm8),
+  broom::glance(lm9),
+  broom::glance(lm10)
+)
+
+lm11 = lm(ln_sal94 ~ gender + clin + dept + , data = lawsuit)
+
+
 
 lm_final = lm(ln_sal94 ~ dept + clin + cert + exper + rank * gender, data = lawsuit)
 summary(lm_final)
@@ -60,4 +76,16 @@ summary(lm_final)
 par(mfrow = c(2,2))
 plot(lm_final)
 ```
+
+```{r}
+lawsuit_ = lawsuit %>% 
+  mutate(ln_exper = log(exper))
+
+lm_final_ = lm(ln_sal94 ~ dept + clin + cert + ln_exper + rank * gender, data = lawsuit_)
+summary(lm_final_)
+
+par(mfrow = c(2,2))
+plot(lm_final_)
+```
+
 

@@ -40,8 +40,59 @@ round(cor(pred),3)
 ```
 
 ```{r contingency}
+data %>% 
+  group_by(gender, dept) %>% 
+  summarise(
+    count = n()
+  )
+
+data %>% 
+  group_by(gender, rank) %>% 
+  summarise(
+    count = n()
+  )
+
+data %>% 
+  group_by(gender, clin) %>% 
+  summarise(
+    count = n()
+  )
+
+data %>% 
+  group_by(gender, cert) %>% 
+  summarise(
+    count = n()
+  )
+
+data %>% 
+  group_by(gender, exper) %>% 
+  summarise(
+    count = n()
+  )
+
 dept = matrix(c(20, 20, 11, 20, 30, 5, 30, 20, 10, 10, 50, 35), nrow = 2,ncol = 6,byrow = T)
 chisq.test(dept)
+
+rank = matrix(c(69,21,16,43,43,69), nrow = 2,ncol = 3,byrow = T)
+chisq.test(rank)
+
+clin = matrix(c(46,60,55,100), nrow = 2,ncol = 2,byrow = T)
+chisq.test(clin)
+
+cert = matrix(c(36,70,37,118), nrow = 2,ncol = 2,byrow = T)
+chisq.test(cert)
+
+data1 = data %>%
+  mutate(
+    lnsal94 = log(sal94, base = exp(1))  
+  ) %>% 
+  dplyr::select(lnsal94, gender, exper) %>% 
+  ggplot(aes(x = exper,y = lnsal94,colour = gender,fill = gender))+
+  geom_point(position ="jitter",size =2,  alpha =0.4)+
+  geom_smooth(fill ="lightgrey",method ="lm",alpha =0.6,size =1.2)+
+  scale_colour_viridis_d("gender")+
+  scale_fill_viridis_d("gender")
+
 ```
 
 ```{r regression}
@@ -91,5 +142,13 @@ summary(reg_stra3)
 
 
 
+```{r}
+lawsuit %>%
+  mutate(
+    logsal94 = log(sal94),
+    logsal95 =  log(sal95) 
+  ) %>% 
+  GGally::ggpairs(upper=list(continuous='points'), lower=list(continuous='cor'))
+```
 
 
