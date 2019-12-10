@@ -102,6 +102,10 @@ summary(reg14)
 reg15 = lm(ln_salavg ~ gender*rank + gender*exper + dept + clin + cert, data = data)
 summary(reg15)
 # gender * rank becomes non-significant
+# reg15 is not superior compared to reg13
+anova(reg13, reg15)
+# reg15 is superior compared to 14
+anova(reg14, reg15)
 ```
 
 ```{r functional}

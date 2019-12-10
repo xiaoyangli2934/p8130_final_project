@@ -862,7 +862,27 @@ summary(reg15)</code></pre>
 ## Residual standard error: 0.1315 on 246 degrees of freedom
 ## Multiple R-squared:  0.9368, Adjusted R-squared:  0.9332 
 ## F-statistic: 260.5 on 14 and 246 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code># gender * rank becomes non-significant</code></pre>
+<pre class="r"><code># gender * rank becomes non-significant
+# reg15 is not superior compared to reg13
+anova(reg13, reg15)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: ln_salavg ~ gender * exper + dept + clin + cert + rank
+## Model 2: ln_salavg ~ gender * rank + gender * exper + dept + clin + cert
+##   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
+## 1    248 4.2660                           
+## 2    246 4.2537  2  0.012253 0.3543  0.702</code></pre>
+<pre class="r"><code># reg15 is superior compared to 14
+anova(reg14, reg15)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: ln_salavg ~ gender * rank + dept + clin + cert + exper
+## Model 2: ln_salavg ~ gender * rank + gender * exper + dept + clin + cert
+##   Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)  
+## 1    247 4.3389                              
+## 2    246 4.2537  1  0.085131 4.9233 0.02741 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre class="r"><code># piecewise regression
 data$experstar = ifelse(data$exper&lt;16, 0, data$exper-16)
 reg_spline = lm(ln_salavg ~ gender*exper + dept + clin + cert + experstar + rank, data = data)
