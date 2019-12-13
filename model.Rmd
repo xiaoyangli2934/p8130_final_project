@@ -107,7 +107,20 @@ anova(reg13, reg15)
 # reg15 is superior compared to 14
 anova(reg14, reg15)
 # reg13 reg14 is similar
-anova(reg13, reg14)
+summary_reg13 = summary(reg13)
+summary_reg14 = summary(reg14)
+
+anova_table = 
+data.frame(adj.R2 = c(summary_reg13$adj.r.squared,summary_reg14$adj.r.squared),
+Fstatistics = c(summary_reg13$fstatistic,summary_reg14$fstatistic)
+)
+anova_table1 = data.frame(anova_table[c(1,4),])
+anova_table1$F.test = c(1.79, 1.76)
+anova_table1$model = c("model1","model2")
+anova_table1 = anova_table1 %>% 
+  dplyr::select(model, adj.R2, Fstatistics, F.test) %>%   knitr::kable()
+anova_table1
+
 ```
 
 ```{r functional}
