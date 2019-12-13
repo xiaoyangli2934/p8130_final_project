@@ -106,6 +106,8 @@ summary(reg15)
 anova(reg13, reg15)
 # reg15 is superior compared to 14
 anova(reg14, reg15)
+# reg13 reg14 is similar
+anova(reg13, reg14)
 ```
 
 ```{r functional}
