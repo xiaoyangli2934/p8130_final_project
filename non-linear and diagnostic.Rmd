@@ -1,7 +1,5 @@
 ---
 title: "Model diagnostic"
-author: "Xiaoyang Li"
-date: "2019/12/8"
 output: word_document
 ---
 ```{r include=FALSE}
@@ -12,21 +10,40 @@ library(HH)
 
 ```{r include=FALSE}
 data = read_csv('./data/Lawsuit.csv') %>%
-  janitor::clean_names() %>%
+  janitor::clean_names() %>% 
   mutate(
+    dept = factor(dept, levels = c(1,2,3,4,5,6)),
     gender = factor(gender, levels = c(0,1), labels = c("female","male")),
     clin = factor(clin, levels = c(0,1)),
     cert = factor(cert, levels = c(0,1)),
     rank = factor(rank, levels = c(1,2,3))
-  )
+    )
 
 data$ln_sal94 = log(data$sal94)
 data$ln_sal95 = log(data$sal95)
 data$salavg = (data$sal94 + data$sal95)/2
 data$ln_salavg = log(data$salavg)
 
+reg3 = lm(ln_salavg ~ gender + dept + clin + cert + exper + rank, data = data)
+summary(reg3)
+
+
 reg13 = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data)
 summary(reg13)
+
+reg14 = lm(ln_salavg ~ gender*rank + dept + clin + cert + exper, data = data)
+summary(reg14)
+
+anova(reg3, reg13)
+anova(reg3, reg14)
+
+reg15 = lm(ln_salavg ~ gender*rank + gender*exper + dept + clin + cert, data = data)
+summary(reg15)
+anova(reg13, reg15)
+anova(reg14, reg15)
+
+
+
 ```
 
 
@@ -41,27 +58,27 @@ data %>%
   geom_smooth()
 ```
 
-The only continuous variable is `exper`. So we made scatter plot for `exper` and `ln_salavg`. According to the scatter plot, we hypothesized there is non-linear relationship between `exper` and `ln_salavg`. 
+The only continuous variable in our model is `exper`. So we made scatter plot for `exper` and `ln_salavg`. According to the scatter plot, we hypothesized there is non-linear relationship between `exper` and `ln_salavg`. 
 
 ### Polynomial regression
 
-
-```{r polynomial without center exper, include=FALSE}
+For model 1 (interaction gender*exper)
+```{r polynomial without center exper for 1, include=FALSE}
 data_poly = data %>% 
   mutate(exper_pow2 = exper^2,
          exper_pow3 = exper^3,
          exper_pow4 = exper^4)
 
-poly_exper = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank + exper + exper_pow2 + exper_pow3 + exper_pow4 , data = data_poly) 
+poly_exper1 = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank + exper + exper_pow2 + exper_pow3 + exper_pow4 , data = data_poly) 
 
-summary(poly_exper)
+summary(poly_exper1)
 
-anova(reg13, poly_exper)
+anova(reg13, poly_exper1)
 
 ```
 
 
-```{r polynomial with center exper, include=FALSE}
+```{r polynomial with center exper for 1, include=FALSE}
 data_poly_ = data %>% 
   mutate(
     exper_ = exper - mean(exper),
@@ -70,50 +87,85 @@ data_poly_ = data %>%
     exper_pow4_ = exper_^4)
 
 
-poly_exper_ = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank + exper_pow2_ + exper_pow3_ + exper_pow4_, data = data_poly_) 
+poly_exper_1 = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank + exper_pow2_ + exper_pow3_ + exper_pow4_, data = data_poly_) 
 
-summary(poly_exper_)
+summary(poly_exper_1)
 
-anova(reg13, poly_exper_)
+anova(reg13, poly_exper_1)
 ```
 
-We added its power 2, 3, 4 to our model and its centering power 2, 3, 4 seperately to create polynomial models. But the summary result indicates that there is no association between higher order of `exper` and `ln_salavg`. Alao, by using anova, we fail to reject our reg13. There is no need to use high order model to improve our `reg13`.
+We added its centering power 2, 3, 4 to original model 1. But the summary result indicates that there is no association between higher order of `exper` and `ln_salavg`. Alao, we fail to reject original model 1 by using anova to compare original model with polinomial model.
+
+
+For model 2 (interaction gender*rank)
+```{r polynomial without center exper for 2, include=FALSE}
+poly_exper2 = lm(ln_salavg ~ gender*rank + dept + clin + cert + rank + exper + exper_pow2 + exper_pow3 + exper_pow4 , data = data_poly) 
+
+summary(poly_exper2)
+
+anova(reg14, poly_exper2)
+
+```
+
+
+```{r polynomial with center exper for 2, include=FALSE}
+poly_exper_2 = lm(ln_salavg ~ gender*rank + dept + clin + cert + rank + exper + exper_pow2_ + exper_pow3_ + exper_pow4_, data = data_poly_) 
+
+summary(poly_exper_2)
+
+anova(reg14, poly_exper_2)
+```
+
+We use the same process to test whether polynomial regression could improve model 2. The higher order model doesn't perform better than original one.
+
 
 
 ### Piecewise model
 
 To make piecewise model, I choose exper = 7.5 and exper = 9 as knots according to the scatter plot.
 
-```{r piecewise,include=FALSE}
+```{r piecewise for 1,include=FALSE}
 data_piecewise = data %>% 
   mutate(spline_7.5 = (exper - 7.5) * (exper >= 7.5),
          spline_9 = (exper - 9) * (exper >= 9))
 
-pw_exper = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + spline_7.5 + spline_9 + rank, data = data_piecewise)
+pw_exper1 = lm(ln_salavg ~ gender*exper + dept + clin + cert + spline_7.5 + spline_9 + rank, data = data_piecewise)
 
-summary(pw_exper)
+summary(pw_exper1)
 
-anova(reg13, pw_exper)
+anova(reg13, pw_exper1)
 ```
-P-value of 2 splines is larger than 0.05 in result of piecewise model. Alao, Alao, by using anova, we fail to reject our reg13. So there is no need to use piecewise model to improve our `reg13`.
+
+2 spline of piecewise model 1 are not significant, so there is not enough significant evidence to show piecewise form of model 1 is reasonable.
+
+```{r piecewise for 2,include=FALSE}
+pw_exper2 = lm(ln_salavg ~ gender*rank + dept + clin + cert  + spline_9 + exper, data = data_piecewise)
+
+summary(pw_exper2)
+
+anova(reg14, pw_exper2)
+```
+For model 2, P-value of spline at exper = 9 is 0.001 which indicate coefficient of exper change significantly here. However, the adjusted R-square is far less than original model 2. Therefore, our original model 2 fits the data better.
 
 
 ## Diagnostic
 
 ### Multicollinearity
+
+For model 1 (interaction gender*exper)
+
 ```{r include = FALSE}
 ## stratify by exper
 data_stra1 = filter(data, exper < 10)
 data_stra2 = filter(data, exper >= 10 & exper < 20)
 data_stra3 = filter(data, exper >= 20)
-reg_stra1 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra1)
+reg_stra1 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra1)
 summary(reg_stra1)
-reg_stra2 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra2)
+reg_stra2 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra2)
 summary(reg_stra2)
-reg_stra3 = lm(ln_salavg ~ gender + factor(dept) + clin + cert + rank, data = data_stra3)
+reg_stra3 = lm(ln_salavg ~ gender + dept + clin + cert + rank, data = data_stra3)
 summary(reg_stra3)
 ```
-
 
 ```{r echo=FALSE}
 vif(reg_stra1) %>% knitr::kable()
@@ -121,53 +173,156 @@ vif(reg_stra2) %>% knitr::kable()
 vif(reg_stra3) %>% knitr::kable()
 ```
 
-After stratifying for experience, we tested VIF for 3 layers of experience. According to the vif results above, there is no predictors' vif larger than 5. So none of predictor's coefficient might be misleading due to collinearity.
+For model 1, we tested VIF after stratification by experience and found there is no predictors' vif larger than 5. So none of predictor's coefficient might be misleading due to collinearity.
+
+For model 2 (interaction gender*rank)
+
+```{r include = FALSE}
+## stratify by rank
+data_stra1_ = filter(data, rank == 1)
+data_stra2_ = filter(data, rank == 2)
+data_stra3_ = filter(data, rank == 3)
+reg_stra1_ = lm(ln_salavg ~ gender + dept + clin + cert, data = data_stra1_)
+summary(reg_stra1_)
+reg_stra2_ = lm(ln_salavg ~ gender + dept + clin + cert, data = data_stra2_)
+summary(reg_stra2_)
+reg_stra3_ = lm(ln_salavg ~ gender + dept + clin + cert, data = data_stra3_)
+summary(reg_stra3_)
+```
+
+```{r echo = FALSE}
+vif(reg_stra1_) %>% knitr::kable()
+vif(reg_stra2_) %>% knitr::kable()
+vif(reg_stra3_) %>% knitr::kable()
+```
+
+Also, we tested VIF after stratification by rank for model 2, there is no collinearity between predicor of model 2.
+
 
 ### Assumptions
-```{r echo = FALSE}
+
+For model 1 (interaction gender*exper)
+```{r include = FALSE}
 par(mfrow = c(2,2))
 plot(reg13)
 ```
 
-Based on the diagnostic plots above, we can see the constant variance assumptions hold well. The curves in residuals vs fitted plot are horizontal and bounce around 0 which indicates that constant variance is satisfied in our model. Scale-location plot shows the same thing. No.184 observations deviates from the normal line on the qq plot means it might be a outlier. Excepr from this observation, other observations satisfy normality pretty well.
+Based on the diagnostic plots for model 1, we can see the constant variance assumptions hold well. The curves in residuals vs fitted plot are horizontal and bounce around 0 which indicates that constant variance is satisfied in our model. Scale-location plot shows the same thing. No.184 observations deviates from the normal line on the qq plot means it might be a outlier. Except from this observation, other observations satisfy normality pretty well.
 
 In addition, the same observation is close to the 0.5 cook's distance in residuals vs leverage plot, which means No.184 observation might be influential.
 
+For model 2 (interaction gender*rank)
+
+```{r include = FALSE}
+par(mfrow = c(2,2))
+plot(reg14)
+```
+
+Diagnostic plots for model 2 show similar things, except from No.184 observation, other observations satisfy all of our assumptions very well. It might be influential point in the same time.
+
 ### Outlier and influential points
 
-According to residuals vs fitted plot and scale-location plot, we can find that No.82, No.122, No. 184 observation are outliers. The No.184 obervation are far away from others.
 
+For model 1 (interaction gender*exper)
+
+According to residuals vs fitted plot and scale-location plot, we can find that No.56, No.122, No. 184 observation are outliers. The No.184 obervation are far away from others.
 
 ```{r include=FALSE}
-data_o = data[-c(184),]
-reg13_o = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_o)
+judge = function(x){
+  data_o = filter(data, id != x)
+  reg13_o = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_o)
+  sum(abs((reg13_o$coefficients - reg13$coefficients) / reg13$coefficients) > 0.1)
+}
+judge(56)
+judge(122)
+judge(184)
+
+
+data_o = data %>% 
+  filter(id != 184)
+
+reg13_o = lm(ln_salavg ~ gender*exper + dept + clin + cert + rank, data = data_o)
 summary(reg13_o)
 ```
-After deleting no.184 observation, adjusted R-square improve from 0.9337 to 0.9458. In addition, several coefficient change. Specifically, coefficient of gender changes a lot (0.129 to 0.098). 
 
-```{r include=FALSE}
-data_o_ = data_o[-c(82, 122),]
-reg13_o_ = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_o_)
-summary(reg13_o_)
-```
+After deleting no.184 observation, adjusted R-square of model 1 improve from 0.9337 to 0.9458. In addition, several coefficient change. Specifically, coefficient of gender changes a lot (0.129 to 0.098). Then we deleted other outliers(No. 56, No. 122) seperately, adjusted R-square didn't improve. coefficient of gender changes from 0.098 to 0.123.
 
-Then we deleted other outliers(No. 82, No. 122), adjusted R-square improve didn't improve very much. BBut, coefficient of gender changes a lot (0.098 to 0.084).
-
-To summary, outliers containning  No.82, No.122 and No. 184 observation. They are influential points in the same time, which means there might be other potential preditor we didn't take into consideration in our model.
+To summary, outliers containning  No.56, No.122 and No. 184 observation, only No.184 is influential points in the same time, which means there might be other potential preditor we didn't take into consideration in our model 1.
 
 
 ```{r include=FALSE}
-influence.measures(reg13) # 19,44,56,58,59,88,125,135,172,216,239
+influential1 = influence.measures(reg13)$infmat %>%
+  as.data.frame() %>%
+  dplyr::select(cook.d,dffit) %>%
+  mutate(`case` = c(1:261),
+         abs_dffit = abs(dffit)) %>%
+  dplyr::select(`case`, everything()) %>% 
+  filter(cook.d > 4 / 261)
+
 ```
 
-According to influence mesure result, we found that No. 19, No. 44, No. 56, No. 58, No. 59, No. 88, No. 122, No. 125, No. 135, No. 172, No. 184, No. 216, No. 239 are potential influential points. Except from outliers we deleted above, we delete other potential influential points in `reg_i`.
+According to cook's distance of every observation, we found that No. 56, No. 58, No. 59, No. 73, No. 82, No. 122, No. 135, No. 182, No. 184, No. 216, No. 220 are potential influential points (criterion Di > 4/n). 
 
 ```{r include=FALSE}
-data_i = data_o_[-c(19,44,56,58,59,88,125,135,172,216,239),]
-reg13_i = lm(ln_salavg ~ gender*exper + factor(dept) + clin + cert + rank, data = data_i)
-summary(reg13_i)
+nrow(influential1)
+output = vector(length = 11)
+
+for (i in 1:11) {
+  l = influential1[i,1]
+  output[i] = judge(l)
+}
+
+cbind(case = influential1[,1], output) %>% 
+  tibble()
+
 ```
 
-After comparing summary results of `reg13_o_` and `reg13_i`, adjusted R-squared improve a little. Coefficients of all predictor don't change largely. So none of our potential influential observation are really influential points after testing. 
+Among those potential influential points, only deleting No. 184 or No. 216 cause huge change to coefficient in model1 (criterion>10%). So No. 184 and No. 216 are influential points.
 
+For model 2 (interaction gender*rank)
+
+According to residuals vs fitted plot and scale-location plot, we can find that No. 122, No. 184, No.208 observation are outliers. The No.184 obervation are far away from others.
+```{r include=FALSE}
+judge_ = function(x){
+  data_o = filter(data, id != x)
+  reg14_o = lm(ln_salavg ~ gender*rank + dept + clin + cert + exper, data = data_o)
+  sum(abs((reg14_o$coefficients - reg14$coefficients) / reg14$coefficients) > 0.1)
+}
+
+judge_(122)
+judge_(184)
+judge_(208)
+```
+
+After deleting no.184 observation, adjusted R-square improve from 0.9322 to 0.9445. In addition, several coefficient change significantly. Specifically, coefficient of gender changes a lot (0.074 to 0.046). Then we deleted other outliers(No. 122, No. 208) seperately, coefficients of predictor don't changes a lot.
+
+To summary, outliers containning  No.122, No.184 and No. 208 observation. Only No. 184 observation is influential points in the same time, which means there might be other potential preditor we didn't take into consideration in our model 2.
+
+
+```{r include=FALSE}
+influential2 = influence.measures(reg14)$infmat %>%
+  as.data.frame() %>%
+  dplyr::select(cook.d,dffit) %>%
+  mutate(`case` = c(1:261),
+         abs_dffit = abs(dffit)) %>%
+  dplyr::select(`case`, everything()) %>% 
+  filter(cook.d > 4 / 261)
+influential2[,1]
+```
+
+According to influence mesure result, we found that No. 56, No. 58, No. 59, No. 73, No. 82, No. 122, No. 182, No. 184, No. 208 are potential influential points. Except from outliers we deleted above, we delete other potential influential points.
+
+```{r include=FALSE}
+nrow(influential2)
+output_ = vector(length = 8)
+
+for (i in 1:8) {
+  l = influential2[i,1]
+  output_[i] = judge_(l)
+}
+
+cbind(case = influential2[,1], output) %>% 
+  tibble()
+```
+Among those potential influential points, only deleting No. 184 causes huge change to coefficient in model1 (criterion>10%). So No. 184 are influential points.
 
