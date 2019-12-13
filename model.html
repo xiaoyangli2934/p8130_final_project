@@ -864,29 +864,26 @@ summary(reg15)</code></pre>
 ## F-statistic: 260.5 on 14 and 246 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code># gender * rank becomes non-significant
 # reg15 is not superior compared to reg13
-anova(reg13, reg15)</code></pre>
-<pre><code>## Analysis of Variance Table
-## 
-## Model 1: ln_salavg ~ gender * exper + dept + clin + cert + rank
-## Model 2: ln_salavg ~ gender * rank + gender * exper + dept + clin + cert
-##   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
-## 1    248 4.2660                           
-## 2    246 4.2537  2  0.012253 0.3543  0.702</code></pre>
-<pre class="r"><code># reg15 is superior compared to 14
-anova(reg14, reg15)</code></pre>
-<pre><code>## Analysis of Variance Table
-## 
-## Model 1: ln_salavg ~ gender * rank + dept + clin + cert + exper
-## Model 2: ln_salavg ~ gender * rank + gender * exper + dept + clin + cert
-##   Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)  
-## 1    247 4.3389                              
-## 2    246 4.2537  1  0.085131 4.9233 0.02741 *
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<pre class="r"><code># reg13 reg14 is similar
+reg1315 = anova(reg13, reg15)
+
+# reg15 is superior compared to 14
+reg1415 = anova(reg14, reg15)
+
+# make table for the result for anova
+nested_anova = data.frame(
+  Fstatistics = c(reg1315$F, reg1415$F),
+  P.value = c(reg1315$`Pr(&gt;F)`, reg1415$`Pr(&gt;F)`)
+) %&gt;% 
+  drop_na() 
+
+nested_anova$model = c(&quot;reg13 VS reg15&quot;, &quot;reg14 VS reg15&quot;)
+nested_anova = nested_anova %&gt;% 
+  dplyr::select(model, everything())
+
+# reg13 reg14 is similar
 summary_reg13 = summary(reg13)
 summary_reg14 = summary(reg14)
-
+# make table for the result
 anova_table = 
 data.frame(adj.R2 = c(summary_reg13$adj.r.squared,summary_reg14$adj.r.squared),
 Fstatistics = c(summary_reg13$fstatistic,summary_reg14$fstatistic)
