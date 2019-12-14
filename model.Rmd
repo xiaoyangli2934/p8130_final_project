@@ -248,3 +248,15 @@ summary(reg_influential)
 ```
 
 
+```{r result, message = FALSE}
+result_df = rbind(tidy4[2, c(2:5)], tidy13[2, c(2:5)], tidy14[2, c(2:5)])
+result_df$model = c("unadjusted", "model1", "model2")
+result_ft = formattable(result_df[, c(5,1,2,3,4)], 
+                     align = c("l", rep("c", 4)),
+                     list(`model` = formatter("span", style = ~ style(color = "grey", font.weight = "bold")))
+                     )
+# export formattable result_ft
+export_formattable(result_ft,"result_ft.png")
+```
+
+
