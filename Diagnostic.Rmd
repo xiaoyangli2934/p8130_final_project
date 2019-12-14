@@ -202,7 +202,7 @@ Also, we tested VIF after stratification by rank for model 2, there is no collin
 ### Assumptions
 
 For model 1 (interaction gender*exper)
-```{r include = FALSE}
+```{r }
 par(mfrow = c(2,2))
 plot(reg13)
 ```
@@ -213,7 +213,7 @@ In addition, the same observation is close to the 0.5 cook's distance in residua
 
 For model 2 (interaction gender*rank)
 
-```{r include = FALSE}
+```{r }
 par(mfrow = c(2,2))
 plot(reg14)
 ```
@@ -253,12 +253,16 @@ To summary, outliers containning  No.56, No.122 and No. 184 observation, only No
 ```{r include=FALSE}
 influential1 = influence.measures(reg13)$infmat %>%
   as.data.frame() %>%
-  dplyr::select(cook.d,dffit) %>%
-  mutate(`case` = c(1:261),
-         abs_dffit = abs(dffit)) %>%
-  dplyr::select(`case`, everything()) %>% 
+  dplyr::select(cook.d) %>%
+  mutate(case = c(1:261)) %>%
+  dplyr::select(case, everything()) %>% 
   filter(cook.d > 4 / 261)
 
+
+```
+
+```{r}
+influential1 %>% knitr::kable()
 ```
 
 According to cook's distance of every observation, we found that No. 56, No. 58, No. 59, No. 73, No. 82, No. 122, No. 135, No. 182, No. 184, No. 216, No. 220 are potential influential points (criterion Di > 4/n). 
@@ -273,7 +277,7 @@ for (i in 1:11) {
 }
 
 cbind(case = influential1[,1], output) %>% 
-  tibble()
+  knitr::kable()
 
 ```
 
@@ -302,12 +306,15 @@ To summary, outliers containning  No.122, No.184 and No. 208 observation. Only N
 ```{r include=FALSE}
 influential2 = influence.measures(reg14)$infmat %>%
   as.data.frame() %>%
-  dplyr::select(cook.d,dffit) %>%
-  mutate(`case` = c(1:261),
-         abs_dffit = abs(dffit)) %>%
-  dplyr::select(`case`, everything()) %>% 
+  dplyr::select(cook.d) %>%
+  mutate(case = c(1:261)) %>%
+  dplyr::select(case, everything()) %>% 
   filter(cook.d > 4 / 261)
 influential2[,1]
+```
+
+```{r}
+influential2 %>% knitr::kable()
 ```
 
 According to influence mesure result, we found that No. 56, No. 58, No. 59, No. 73, No. 82, No. 122, No. 182, No. 184, No. 208 are potential influential points. Except from outliers we deleted above, we delete other potential influential points.
@@ -322,7 +329,7 @@ for (i in 1:8) {
 }
 
 cbind(case = influential2[,1], output) %>% 
-  tibble()
+  knitr::kable()
 ```
 Among those potential influential points, only deleting No. 184 causes huge change to coefficient in model1 (criterion>10%). So No. 184 are influential points.
 
