@@ -26,7 +26,7 @@ data_raw = data = read_csv('./data/Lawsuit.csv') %>%
 data = read_csv('./data/Lawsuit.csv') %>%
   janitor::clean_names() %>%
   mutate(
-    dept = factor(dept, levels = c(1,2,3,4,5,6), labels = c("Biochemistry/Molecular Biology","Physiology","Genetics","Pediatrics","Medicine","Surgery")),
+    dept = factor(dept, levels = c(1,2,3,4,5,6), labels = c("Biochemistry/Molecular Biology", "Physiology", "Genetics", "Pediatrics", "Medicine", "Surgery")),
     gender = factor(gender, levels = c(0,1), labels = c("Female","Male")),
     clin = factor(clin, levels = c(0,1), labels = c("Primarily research emphasis","Primarily clinical emphasis")),
     cert = factor(cert, levels = c(0,1), labels = c("not certified","Board certified")),
@@ -39,28 +39,6 @@ data$salavg = (data$sal94 + data$sal95)/2
 data$ln_salavg = log(data$salavg)
 ```
 
-```{r multicollinearity}
-# all covariates
-reg1 = lm(ln_salavg ~ gender + dept + clin + prate + cert + exper + rank, data = data)
-summary(reg1)
-vif(reg1) %>% 
-  knitr::kable()
-
-pred = data_raw[,c(2, 4:8)]
-round(cor(pred), 3) %>% 
-  broom::tidy() %>% 
-  knitr::kable()
-
-# all covariates except clin
-reg2 = lm(ln_salavg ~ gender + dept + prate + cert + exper + rank, data = data)
-vif(reg2) %>% 
-  knitr::kable()
-# all covariates except prate
-reg3 = lm(ln_salavg ~ gender + dept + clin + cert + exper + rank, data = data)
-vif(reg3) %>% 
-  knitr::kable()
-# dropping prate leads to lower mean vif
-```
 
 ```{r confounding}
 # gender only
@@ -148,21 +126,6 @@ anova_table1
 data$experstar = ifelse(data$exper<16, 0, data$exper-16)
 reg_spline = lm(ln_salavg ~ gender*exper + dept + clin + cert + experstar + rank, data = data)
 summary(reg_spline)
-```
-
-```{r selection}
-# compare with and without interaction term
-anova(reg3, reg13)
-# compare linear and piecewise
-anova(reg13, reg_spline)
-# AIC
-AIC(reg13)
-AIC(reg14)
-AIC(reg_spline)
-# BIC 
-AIC(reg13, k = log(length(data$ln_salavg)))
-AIC(reg14, k = log(length(data$ln_salavg)))
-AIC(reg_spline, k = log(length(data$ln_salavg)))
 ```
 
 ```{r diagnostics, message = FALSE}

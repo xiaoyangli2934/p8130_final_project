@@ -48,6 +48,7 @@ data = read.csv("./data/Lawsuit.csv") %>% janitor::clean_names() %>%
 **Table 1: Summary Statistics of lawsuit Data**
 ```{r, results="asis", echo=FALSE}
 library(arsenal)
+
 my_controls <- tableby.control(
   test = T,
   total = T,
@@ -218,5 +219,8 @@ data = full_join(data, data2)
 multi_fit = lm(`94_95_mean`~ factor(dept)+ factor(gender)+ factor(clin)+ factor(cert)+ prate + exper +factor(rank) , data = data)
 boxcox(multi_fit)
 ```
+
 Based on the plot above, we need to do log-transformation for the mean value of sal94 and sal95 to meet the assumption of normality.
+
+
 

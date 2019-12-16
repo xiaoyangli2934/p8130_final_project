@@ -52,10 +52,15 @@ anova(reg14, reg15)
 
 ## Functional form for continuous predictor
 ```{r scatter plot, echo=FALSE, message=FALSE}
-data %>% 
+non_linear = data %>% 
   ggplot(aes(x = exper, y = ln_salavg)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() +
+  labs(
+    x = "Experience(years)",
+    y = "ln(average of salary in 94 and 95)"
+  )
+
 ```
 
 The only continuous variable in our model is `exper`. So we made scatter plot for `exper` and `ln_salavg`. According to the scatter plot, we hypothesized there is non-linear relationship between `exper` and `ln_salavg`. 
